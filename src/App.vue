@@ -1,17 +1,19 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+    <!-- FIXME replace with 47rooks logo -->
+    <h1><span><img alt="Vue logo" src="./assets/logo.png" width="25px" height="25px"></span>
+    Typing Practice Tool</h1>
+    <TypingPractice msg="Welcome to Your Vue.js + TypeScript App"/>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import HelloWorld from './components/HelloWorld.vue';
+import TypingPractice from '@/components/TypingPractice.vue';
 
 @Component({
   components: {
-    HelloWorld,
+    TypingPractice,
   },
 })
 export default class App extends Vue {}
@@ -25,5 +27,8 @@ export default class App extends Vue {}
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+#app img {
+  text-align: left;
 }
 </style>
