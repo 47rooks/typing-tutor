@@ -1,0 +1,37 @@
+h3 {
+  margin: 40px 0 0;
+}
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+li {
+  display: inline-block;
+  margin: 0 10px;
+}
+a {
+  color: #42b983;
+}
+div#controls {
+  margin-bottom: 5px;
+}
+div#controls > ul > li > span {
+  margin: 0 5px;
+}
+div#typing-pane {
+  background-color: #c5e2d5;
+  z-index: 1000;
+  visibility: hidden;
+  height: 150px;
+  width: 90%;
+  top: 50%;
+  left: 50%;
+  font-size: 150%;
+  position: absolute;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  border-radius: 10px;
+}
+div#typing-pane input {
+  font-size: 150%;
+}
