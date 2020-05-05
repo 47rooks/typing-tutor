@@ -1,9 +1,14 @@
 <template>
   <div id="app">
     <!-- FIXME replace with 47rooks logo -->
-    <h1><span><img alt="Vue logo" src="./assets/logo.png" width="25px" height="25px"></span>
-    Typing Practice Tool</h1>
-    <TypingPractice msg="Welcome to Your Vue.js + TypeScript App"/>
+    <span style="display: none">
+      <img alt="Vue logo" src="./assets/MemZayin64PaleGreen.png" width="28px" height="28px" />
+    </span>
+
+    <h1>
+      Typing Practice Tool
+    </h1>
+    <TypingPractice msg="Welcome to Your Vue.js + TypeScript App" />
   </div>
 </template>
 
