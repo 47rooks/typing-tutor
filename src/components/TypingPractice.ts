@@ -9,6 +9,8 @@ import { Component, Vue } from 'vue-property-decorator';
  * if there are two blanks at the break point the first word of the next line ends up on
  *     this line. This is the opposite issue where the last word of the current line is added
  *     to the next one, which is caused by the stepping back from the breakpoint before checking.
+ * Not clear in exampleLine anymore that you have a  blank line.
+ *     Poss. fixes Tweak color ? Insert BLANK LINE, HIT RETURN text ?
  */
 @Component
 export default class TypingPractice extends Vue {

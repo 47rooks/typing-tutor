@@ -39,7 +39,6 @@
         :placeholder="PLACEHOLDER_TEXT"
       ></textarea>
     </div>
-    <!--  :style="typingPaneStyle"  style="background-color: rgba(197, 226, 213, 1)"-->
     <div id="typing-pane" v-bind:style="typingPaneStyle">
       <div id="typing-pane-color-layer">
         <div id="typed-text-pane">
