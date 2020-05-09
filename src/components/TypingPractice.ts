@@ -1,5 +1,4 @@
 import { Component, Vue } from 'vue-property-decorator';
-import GraphemeSplitter from 'grapheme-splitter';
 
 /*
  * BUGS
@@ -13,8 +12,6 @@ import GraphemeSplitter from 'grapheme-splitter';
 @Component
 export default class TypingPractice extends Vue {
   // ----------- Private-use member variables
-  private readonly splitter = new GraphemeSplitter();
-
   private lineComplete = false;
 
   // Array containing lines of text that are each as long as their corresponding line
