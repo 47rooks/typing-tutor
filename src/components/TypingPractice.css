@@ -18,45 +18,36 @@ div#controls {
 div#controls > ul > li > span {
   margin: 0 5px;
 }
-/* div#typing-pane {
-  background-color: rgba(197, 226, 213, 0.5);
-  z-index: 1000;
-  visibility: hidden;
-  width: 90%;
-  top: 50%;
-  left: 50%;
-  font-size: 150%;
-  position: absolute;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-  border-radius: 10px;
-} */
 div#typing-pane {
-  background-color: rgba(197, 226, 213, 0.5);
   z-index: 1000;
   visibility: hidden;
-  /* width: 90%;
-  top: 50%;
-  left: 50%; */
-  font-size: 150%;
-  /* position: absolute;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%); */
+  display: none;
+}
+/* The #typing-pane-color-layer is working around a Vue update issue
+ * where I cannot set the background-color programmatically nor merge it
+ * with CSS settings on the SAME div. So I have the visibility controlled
+ * by the surrounding #typing-pane which is manipulated by Vue bindings,
+ * and do all static styling here.
+ */
+div#typing-pane-color-layer {
+  background-color: rgba(197, 226, 213, 1);
   border-radius: 10px;
+  font-size: 150%;
   align-content: center;
 }
-div#typed-text-pane {
+div#typed-text-pane,
+div#yet-to-be-typed-text-pane {
   width: 60%;
   font-size: 80%;
   margin: 0 auto;
   background-color: rgba(197, 226, 213, 0.5);
 }
-div#typing-pane p#typed-text {
+div#typing-pane p#typed-text,
+div#typing-pane p#yet-to-be-typed-text {
   text-align: justify;
 }
-#ref-line span {
+div#typing-pane #ref-line span {
   font-size: 150%;
-  background-color: rgba(188, 209, 238, 0.5);
 }
 div#typing-pane input {
   font-size: 150%;

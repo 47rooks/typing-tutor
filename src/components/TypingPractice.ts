@@ -4,7 +4,8 @@ import { Component, Vue } from 'vue-property-decorator';
  * BUGS
  * ----
  * resetting text size after pasting increases referenceTA width and height, rather than
- *     rebreaking.
+ *     rebreaking. This appears to happen only on the initial paste if the user has not
+ *     manually resized the box. This may be naturally how it works.
  * if there are two blanks at the break point the first word of the next line ends up on
  *     this line. This is the opposite issue where the last word of the current line is added
  *     to the next one, which is caused by the stepping back from the breakpoint before checking.
@@ -57,6 +58,10 @@ export default class TypingPractice extends Vue {
 
   private numTypedPracticeLines = 0;
 
+  private yetToBeTypedPracticeText = '';
+
+  private nextYetToBeTypedPracticeLine = 0;
+
   private textExampleLine = '';
 
   private practiceLineText = '';
@@ -65,11 +70,20 @@ export default class TypingPractice extends Vue {
     return `resize: horizontal; font-size: ${this.curTextsize}px`;
   }
 
+  // 'background-color': 'rgb(197, 226, 213)',
+
   get typingPaneStyle() {
     if (this.typingPaneVisible) {
-      return 'display: inline; visibility: visible';
+      return {
+        'background-color': 'red',
+        display: 'inline',
+        visibility: 'visible',
+      };
     }
-    return 'display: none; visibility: hidden';
+    return {
+      display: 'none',
+      visibility: 'hidden',
+    };
   }
 
   get referencePaneStyle() {
@@ -101,7 +115,19 @@ export default class TypingPractice extends Vue {
     this.textExampleLine = this.referenceTextLines[this.referenceTextNextLine];
     this.referenceTextNextLine += 1;
     this.practiceLineText = '';
+    // Set up the yet-to-be-typed-text
+    const linesToAdd = this.referenceTextLines.length > 6 ? 6 : this.referenceTextLines.length;
+    const textToAdd = this.referenceTextLines.slice(1, linesToAdd);
+    textToAdd.forEach((t, idx) => {
+      if (idx === 0) {
+        this.yetToBeTypedPracticeText = `${t}`;
+      } else {
+        this.yetToBeTypedPracticeText = `${this.yetToBeTypedPracticeText}<br>${t}`;
+      }
+    });
+    this.nextYetToBeTypedPracticeLine = linesToAdd;
 
+    // Set focus in the text input box with a delay so it renders before focus is made.
     const pBox = document.getElementById('practice-line') as HTMLInputElement;
     setTimeout(() => {
       pBox.focus();
@@ -141,10 +167,6 @@ export default class TypingPractice extends Vue {
 
   enterHdlr(event: KeyboardEvent) {
     if (event && event.keyCode === 13) {
-      if (this.referenceTextNextLine >= this.referenceTextLines.length) {
-        this.textExampleLine = 'You are done';
-        return;
-      }
       // Copy line to typed area
       const inputElt = document.getElementById('practice-line') as HTMLInputElement;
       console.log(`Input=${inputElt.value}`);
@@ -163,6 +185,12 @@ export default class TypingPractice extends Vue {
       }
       this.numTypedPracticeLines += 1;
 
+      // Exit if we are done.
+      if (this.referenceTextNextLine >= this.referenceTextLines.length) {
+        this.textExampleLine = 'You are done';
+        return;
+      }
+
       // Display next copy line
       this.textExampleLine = this.referenceTextLines[this.referenceTextNextLine];
       if (this.textExampleLine.length === 0 || this.textExampleLine === '\n' || this.textExampleLine === '') {
@@ -170,6 +198,23 @@ export default class TypingPractice extends Vue {
       }
       this.referenceTextNextLine += 1;
       this.practiceLineText = '';
+
+      // Shuffle the yet-to-be-typed-text
+      let idx = this.yetToBeTypedPracticeText.search('<br>');
+      if (idx === -1) {
+        this.yetToBeTypedPracticeText = '';
+      } else {
+        idx += 4;
+        this.yetToBeTypedPracticeText = this.yetToBeTypedPracticeText.substr(idx);
+        if (this.nextYetToBeTypedPracticeLine < this.referenceTextLines.length) {
+          textToAdd = this.referenceTextLines[this.nextYetToBeTypedPracticeLine];
+          if (textToAdd.length === 0 || textToAdd === '\n' || textToAdd === '') {
+            textToAdd = '&nbsp;';
+          }
+          this.yetToBeTypedPracticeText = `${this.yetToBeTypedPracticeText}<br>${textToAdd}`;
+          this.nextYetToBeTypedPracticeLine += 1;
+        }
+      }
     }
   }
 
