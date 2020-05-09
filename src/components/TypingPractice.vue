@@ -14,7 +14,7 @@
             >
           </select>
         </li>
-        <li v-if="renderPracticeButton">
+        <li>
           <button
             id="practice-button"
             type="button"
@@ -22,11 +22,6 @@
             :disabled="practiceDisabled"
           >
             Practice
-          </button>
-        </li>
-        <li v-else>
-          <button id="reset-button" type="button" @click="resetHdlr" :disabled="resetDisabled">
-            Reset
           </button>
         </li>
         <li>
@@ -41,7 +36,6 @@
         cols="80"
         v-model="reftext"
         :style="textareaStyle"
-        @paste="pasteHdlr"
         :placeholder="PLACEHOLDER_TEXT"
       ></textarea>
     </div>

@@ -19,7 +19,7 @@ div#controls > ul > li > span {
   margin: 0 5px;
 }
 div#typing-pane {
-  background-color: #c5e2d5;
+  background-color: rgba(197, 226, 213, 0.5);
   z-index: 1000;
   visibility: hidden;
   width: 90%;

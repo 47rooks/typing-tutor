@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <!-- FIXME replace with 47rooks logo -->
+    <!-- FIXME see how to integrate into the 47rooks website LandF -->
     <span style="display: none">
       <img alt="Vue logo" src="./assets/MemZayin64PaleGreen.png" width="28px" height="28px" />
     </span>
