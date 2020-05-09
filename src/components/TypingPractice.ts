@@ -52,10 +52,6 @@ export default class TypingPractice extends Vue {
     return this.reftext === '';
   }
 
-  get resetDisabled() {
-    return this.reftext === '';
-  }
-
   get clearDisabled() {
     return this.reftext === '';
   }
