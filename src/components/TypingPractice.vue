@@ -29,18 +29,21 @@
         </li>
       </ul>
     </div>
-    <div id="reference-pane">
+    <div id="reference-pane" :style="referencePaneStyle">
       <textarea
         id="referenceTA"
-        rows="28"
-        cols="80"
+        :rows="refTextareaRows"
+        :cols="refTextareaCols"
         v-model="reftext"
         :style="textareaStyle"
         :placeholder="PLACEHOLDER_TEXT"
       ></textarea>
     </div>
     <div id="typing-pane" :style="typingPaneStyle">
-      <p id="ref-line">{{ textExampleLine }}</p>
+      <div id="typed-text-pane">
+        <p id="typed-text"><span v-html="typedPracticeText"></span></p>
+      </div>
+      <p id="ref-line"><span v-html="textExampleLine"></span></p>
       <input
         id="practice-line"
         size="80"

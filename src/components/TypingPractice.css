@@ -18,7 +18,7 @@ div#controls {
 div#controls > ul > li > span {
   margin: 0 5px;
 }
-div#typing-pane {
+/* div#typing-pane {
   background-color: rgba(197, 226, 213, 0.5);
   z-index: 1000;
   visibility: hidden;
@@ -30,9 +30,33 @@ div#typing-pane {
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
   border-radius: 10px;
-}
-#ref-line {
+} */
+div#typing-pane {
+  background-color: rgba(197, 226, 213, 0.5);
+  z-index: 1000;
+  visibility: hidden;
+  /* width: 90%;
+  top: 50%;
+  left: 50%; */
   font-size: 150%;
+  /* position: absolute;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%); */
+  border-radius: 10px;
+  align-content: center;
+}
+div#typed-text-pane {
+  width: 60%;
+  font-size: 80%;
+  margin: 0 auto;
+  background-color: rgba(197, 226, 213, 0.5);
+}
+div#typing-pane p#typed-text {
+  text-align: justify;
+}
+#ref-line span {
+  font-size: 150%;
+  background-color: rgba(188, 209, 238, 0.5);
 }
 div#typing-pane input {
   font-size: 150%;

@@ -22,6 +22,16 @@ export default class TypingPractice extends Vue {
   // Next referenceTextLines entry to display to user
   private referenceTextNextLine = 0;
 
+  private referencePaneVisble = true;
+
+  private readonly DEFAULT_REF_TEXTAREA_ROWS = 28;
+
+  private refTextareaRows = this.DEFAULT_REF_TEXTAREA_ROWS;
+
+  private readonly DEFAULT_REF_TEXTAREA_COLS = 80;
+
+  private refTextareaCols = this.DEFAULT_REF_TEXTAREA_COLS;
+
   // Vue related data (member vars), computed properties (get and set)
   // Reference textarea prompt text.
   private readonly PLACEHOLDER_TEXT = 'Paste in practice text';
@@ -30,14 +40,22 @@ export default class TypingPractice extends Vue {
   // exercise.
   private reftext = '';
 
+  private practiceButtonDisabled = false;
+
   // Text size options for reference text textarea
   private textsizes = [7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40];
 
-  private curTextsize = '14';
+  private readonly DEFAULT_TEXT_SIZE = 14;
+
+  private curTextsize = this.DEFAULT_TEXT_SIZE;
 
   // The actual practice typing pane data.
   // Whether the pane is visible or not.  Initially not.
-  private typingPaneVisibility = 'hidden';
+  private typingPaneVisible = false;
+
+  private typedPracticeText = '';
+
+  private numTypedPracticeLines = 0;
 
   private textExampleLine = '';
 
@@ -48,40 +66,37 @@ export default class TypingPractice extends Vue {
   }
 
   get typingPaneStyle() {
-    if (this.reftext === '') {
-      return 'visibility: hidden';
+    if (this.typingPaneVisible) {
+      return 'display: inline; visibility: visible';
     }
-    return `visibility: ${this.typingPaneVisibility}`;
+    return 'display: none; visibility: hidden';
+  }
+
+  get referencePaneStyle() {
+    if (this.referencePaneVisble) {
+      return 'display: inline; visibility: visible';
+    }
+    return 'display: none; visibility: hidden';
   }
 
   get practiceDisabled() {
-    return this.reftext === '';
+    return this.reftext === '' || this.practiceButtonDisabled;
   }
 
   get clearDisabled() {
     return this.reftext === '';
   }
 
-  clearHdlr(): void {
-    this.reftext = '';
-    // enable the Practice and Clear buttons
-    this.togglePaneVisibility();
-    const ta = document.getElementById('referenceTA') as HTMLTextAreaElement;
-    console.log(`empty scrollwidth=${ta.scrollWidth}`);
-    // Reset the practice text variables
-    this.practiceLineText = '';
-    this.referenceTextLines = [];
-    this.referenceTextNextLine = 0;
-    this.lineComplete = false;
-  }
-
   practiceHdlr(): void {
     console.log('practiceHdlr called');
     // Make the typing pane visible and populate it
-    this.togglePaneVisibility();
+    this.showTypingPane();
     // Create the array of lines to practice through
     this.referenceTextLines = this.applyLineBreaks('referenceTA');
-
+    // Hide the reference-pane
+    this.hideReferencePane();
+    // Disable practice button
+    this.practiceButtonDisabled = true;
     // Get the practice box, clear it and set focus
     this.textExampleLine = this.referenceTextLines[this.referenceTextNextLine];
     this.referenceTextNextLine += 1;
@@ -91,6 +106,29 @@ export default class TypingPractice extends Vue {
     setTimeout(() => {
       pBox.focus();
     }, 30);
+  }
+
+  clearHdlr(): void {
+    this.reftext = '';
+    // enable the Practice and Clear buttons
+    this.practiceButtonDisabled = false;
+
+    this.hideTypingPane();
+    this.showReferencePane();
+    const ta = document.getElementById('referenceTA') as HTMLTextAreaElement;
+    console.log(`empty scrollwidth=${ta.scrollWidth}`);
+    // Reset the practice text variables
+    this.practiceLineText = '';
+    this.referenceTextLines = [];
+    this.referenceTextNextLine = 0;
+    this.textExampleLine = '';
+    this.lineComplete = false;
+    this.typedPracticeText = '';
+    this.numTypedPracticeLines = 0;
+    // Reset default text input box parameters
+    this.curTextsize = this.DEFAULT_TEXT_SIZE;
+    this.refTextareaCols = this.DEFAULT_REF_TEXTAREA_COLS;
+    this.refTextareaRows = this.DEFAULT_REF_TEXTAREA_ROWS;
   }
 
   characterHdlr(event: InputEvent) {
@@ -107,7 +145,29 @@ export default class TypingPractice extends Vue {
         this.textExampleLine = 'You are done';
         return;
       }
+      // Copy line to typed area
+      const inputElt = document.getElementById('practice-line') as HTMLInputElement;
+      console.log(`Input=${inputElt.value}`);
+      let textToAdd = inputElt.value;
+      if (textToAdd.length === 0 || textToAdd === '\n' || textToAdd === '') {
+        textToAdd = '&nbsp;';
+      }
+      if (this.typedPracticeText.length > 0) {
+        if (this.numTypedPracticeLines > 5) {
+          const idx = this.typedPracticeText.search('<br>') + 4;
+          this.typedPracticeText = this.typedPracticeText.substr(idx);
+        }
+        this.typedPracticeText = `${this.typedPracticeText}<br>${textToAdd}`;
+      } else {
+        this.typedPracticeText = textToAdd;
+      }
+      this.numTypedPracticeLines += 1;
+
+      // Display next copy line
       this.textExampleLine = this.referenceTextLines[this.referenceTextNextLine];
+      if (this.textExampleLine.length === 0 || this.textExampleLine === '\n' || this.textExampleLine === '') {
+        this.textExampleLine = '&nbsp';
+      }
       this.referenceTextNextLine += 1;
       this.practiceLineText = '';
     }
@@ -206,7 +266,7 @@ export default class TypingPractice extends Vue {
       let i = 0;
       let j: number;
       if (strRaw.length === 0) {
-        rv.push('<BLANK LINE>');
+        rv.push('\n');
       } else {
         while (i < strRaw.length) {
           const breakOffset = findNextBreakLength(strRaw.substr(i));
@@ -238,7 +298,19 @@ export default class TypingPractice extends Vue {
     return rv;
   }
 
-  private togglePaneVisibility(): void {
-    this.typingPaneVisibility = this.typingPaneVisibility === 'hidden' ? 'visible' : 'hidden';
+  private showTypingPane(): void {
+    this.typingPaneVisible = true;
+  }
+
+  private hideTypingPane(): void {
+    this.typingPaneVisible = false;
+  }
+
+  private showReferencePane(): void {
+    this.referencePaneVisble = true;
+  }
+
+  private hideReferencePane(): void {
+    this.referencePaneVisble = false;
   }
 }
