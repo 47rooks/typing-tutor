@@ -1,6 +1,15 @@
 import { Component, Vue } from 'vue-property-decorator';
 import GraphemeSplitter from 'grapheme-splitter';
 
+/*
+ * BUGS
+ * ----
+ * resetting text size after pasting increases referenceTA width and height, rather than
+ *     rebreaking.
+ * if there are two blanks at the break point the first word of the next line ends up on
+ *     this line. This is the opposite issue where the last word of the current line is added
+ *     to the next one, which is caused by the stepping back from the breakpoint before checking.
+ */
 @Component
 export default class TypingPractice extends Vue {
   // ----------- Private-use member variables
@@ -62,6 +71,11 @@ export default class TypingPractice extends Vue {
     this.togglePaneVisibility();
     const ta = document.getElementById('referenceTA') as HTMLTextAreaElement;
     console.log(`empty scrollwidth=${ta.scrollWidth}`);
+    // Reset the practice text variables
+    this.practiceLineText = '';
+    this.referenceTextLines = [];
+    this.referenceTextNextLine = 0;
+    this.lineComplete = false;
   }
 
   practiceHdlr(): void {
