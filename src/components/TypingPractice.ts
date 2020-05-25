@@ -42,7 +42,16 @@ export default class TypingPractice extends Vue {
 
   // Vue related data (member vars), computed properties (get and set)
   // Reference textarea prompt text.
-  private readonly PLACEHOLDER_TEXT = 'Paste in practice text';
+  private readonly PLACEHOLDER_TEXT = `
+  Welcome to the Typing Practice Tool.
+  
+  Paste your practice text into this window. Then choose the display font you want to use.
+  Set the size. Edit out and bits of the text you don't want to practice. Resize the textarea
+  to set the basic line length you want.
+  
+  Hit the Practice button and you will be led through the practice test one line at a time.
+  
+  When you are done hit the Clear button to reset and paste in new text.`;
 
   // Reference text that the user paste in to then copy as a typing
   // exercise.
