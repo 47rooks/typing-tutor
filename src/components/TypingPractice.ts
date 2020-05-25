@@ -49,7 +49,7 @@ export default class TypingPractice extends Vue {
   Set the size. Edit out and bits of the text you don't want to practice. Resize the textarea
   to set the basic line length you want.
   
-  Hit the Practice button and you will be led through the practice test one line at a time.
+  Hit the Practice button and you will be led through the practice text one line at a time.
   
   When you are done hit the Clear button to reset and paste in new text.`;
 
