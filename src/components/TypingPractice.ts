@@ -93,7 +93,7 @@ export default class TypingPractice extends Vue {
     'sans-serif',
   ];
 
-  PREFERRED_FONT = 'Cardo'
+  PREFERRED_FONT = 'Accordance';
 
   // The selected font in which to render text
   private chosenFont = this.PREFERRED_FONT;
