@@ -17,6 +17,7 @@ import { Component, Vue } from 'vue-property-decorator';
 import TypingPractice from '@/components/TypingPractice.vue';
 
 @Component({
+  name: 'App',
   components: {
     TypingPractice,
   },
@@ -25,8 +26,12 @@ export default class App extends Vue {}
 </script>
 
 <style>
+#app,
+textarea,
+input {
+  font-family: Accordance, Cardo, 'Times New Roman', Helvetica, Arial, sans-serif;
+}
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;

@@ -1,4 +1,5 @@
 import { Component, Vue } from 'vue-property-decorator';
+import FontPicker from './FontPicker.vue';
 
 /*
  * BUGS
@@ -12,7 +13,11 @@ import { Component, Vue } from 'vue-property-decorator';
  * Not clear in exampleLine anymore that you have a  blank line.
  *     Poss. fixes Tweak color ? Insert BLANK LINE, HIT RETURN text ?
  */
-@Component
+@Component({
+  components: {
+    'font-picker': FontPicker,
+  },
+})
 export default class TypingPractice extends Vue {
   // ----------- Private-use member variables
   private lineComplete = false;
@@ -68,18 +73,34 @@ export default class TypingPractice extends Vue {
 
   private practiceLineText = '';
 
+  // font-picker support
+  FONT_LIST = [
+    'Accordance',
+    'Cardo',
+    'Times New Roman',
+    'Helvetica',
+    'Arial',
+    'sans-serif',
+  ];
+
+  PREFERRED_FONT = 'Cardo'
+
+  // The selected font in which to render text
+  private chosenFont = this.PREFERRED_FONT;
+
   get textareaStyle() {
-    return `resize: horizontal; font-size: ${this.curTextsize}px`;
+    return `resize: horizontal; font-family: ${this.chosenFont}; font-size: ${this.curTextsize}px`;
   }
 
   // 'background-color': 'rgb(197, 226, 213)',
 
-  get typingPaneStyle() {
+  get typingPaneStyle(): object {
     if (this.typingPaneVisible) {
       return {
         'background-color': 'red',
         display: 'inline',
         visibility: 'visible',
+        'font-family': `${this.chosenFont}`,
       };
     }
     return {
@@ -88,11 +109,18 @@ export default class TypingPractice extends Vue {
     };
   }
 
-  get referencePaneStyle() {
+  get referencePaneStyle(): string {
     if (this.referencePaneVisble) {
       return 'display: inline; visibility: visible';
     }
     return 'display: none; visibility: hidden';
+  }
+
+  get typedTextStyle(): object {
+    return {
+      'text-align': 'justify',
+      'font-family': `${this.chosenFont}`,
+    };
   }
 
   get practiceDisabled() {
@@ -101,6 +129,14 @@ export default class TypingPractice extends Vue {
 
   get clearDisabled() {
     return this.reftext === '';
+  }
+
+  /**
+   * Handle the font selected by the user
+   * @param chosenFont the font name the user chose
+   */
+  fontHandler(chosenFont: string) {
+    this.chosenFont = chosenFont;
   }
 
   practiceHdlr(): void {
