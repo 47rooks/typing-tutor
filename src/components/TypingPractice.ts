@@ -140,7 +140,6 @@ export default class TypingPractice extends Vue {
   }
 
   practiceHdlr(): void {
-    console.log('practiceHdlr called');
     // Make the typing pane visible and populate it
     this.showTypingPane();
     // Create the array of lines to practice through
@@ -179,8 +178,6 @@ export default class TypingPractice extends Vue {
 
     this.hideTypingPane();
     this.showReferencePane();
-    const ta = document.getElementById('referenceTA') as HTMLTextAreaElement;
-    console.log(`empty scrollwidth=${ta.scrollWidth}`);
     // Reset the practice text variables
     this.practiceLineText = '';
     this.referenceTextLines = [];
@@ -198,7 +195,6 @@ export default class TypingPractice extends Vue {
   characterHdlr(event: InputEvent) {
     const character = event.data;
     if (character === '\n' || character === '\r') {
-      console.log('Got return');
       this.lineComplete = true;
     }
   }
@@ -207,7 +203,6 @@ export default class TypingPractice extends Vue {
     if (event && event.keyCode === 13) {
       // Copy line to typed area
       const inputElt = document.getElementById('practice-line') as HTMLInputElement;
-      console.log(`Input=${inputElt.value}`);
       let textToAdd = inputElt.value;
       if (textToAdd.length === 0 || textToAdd === '\n' || textToAdd === '') {
         textToAdd = '&nbsp;';
@@ -282,7 +277,6 @@ export default class TypingPractice extends Vue {
     const strRawValue = oTextarea.value;
     oTextarea.value = '';
     const nEmptyWidth = oTextarea.scrollWidth;
-    console.log(`nEmptyWidth=${nEmptyWidth}`);
 
     /**
      * Check if the string is rendered wider than the width of the textarea.
@@ -324,9 +318,7 @@ export default class TypingPractice extends Vue {
       }
 
       const strTest = strSource.substr(0, nCurrent);
-      // console.log(`strTest=${strTest}`);
       const bLonger = testBreak(strTest);
-      // console.log(`bLonger=${bLonger} nCurrent=${nCurrent}`);
       if (bLonger) {
         nRight = nCurrent;
       } else {
@@ -345,7 +337,6 @@ export default class TypingPractice extends Vue {
 
     const strRawArray = strRawValue.split('\n');
     strRawArray.forEach((strRaw) => {
-      console.log(`strRaw=${strRaw}`);
       let i = 0;
       let j: number;
       if (strRaw.length === 0) {
@@ -355,7 +346,6 @@ export default class TypingPractice extends Vue {
           const breakOffset = findNextBreakLength(strRaw.substr(i));
           if (breakOffset === null) {
             // Terminate iteration - we are at the end of the input text.
-            console.log('returning the remainder');
             rv.push(strRaw.substr(i));
             break;
           }
@@ -369,10 +359,8 @@ export default class TypingPractice extends Vue {
               break;
             }
           }
-          console.log(`line=${strRaw.substr(i, nLineLength)}`);
           rv.push(strRaw.substr(i, nLineLength));
           i += nLineLength;
-          console.log(`i=${i} nLinelength=${nLineLength}`);
         }
       }
     });
