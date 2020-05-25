@@ -50,6 +50,7 @@ export default class TypingPractice extends Vue {
   to set the basic line length you want.
   
   Hit the Practice button and you will be led through the practice text one line at a time.
+  Hit return at the end of each line to progress to the next line.
   
   When you are done hit the Clear button to reset and paste in new text.`;
 
