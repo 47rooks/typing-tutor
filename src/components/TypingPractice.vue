@@ -4,7 +4,7 @@
       <ul>
         <li>
           <font-picker @selected="fontHandler"
-          :fonts="FONT_LIST"></font-picker>
+          :fonts="FONT_LIST" preferred-font='Accordance'></font-picker>
         </li>
         <li>
           <span>Text size</span>

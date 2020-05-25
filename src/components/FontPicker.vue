@@ -27,6 +27,8 @@ export default class FontPicker extends Vue {
 
   installedFonts: string[] = [];
 
+  @Prop() preferredFont!: string;
+
   initiallySelectedFont!: string;
 
   /**
@@ -42,7 +44,11 @@ export default class FontPicker extends Vue {
       this.installedFonts = this.fonts;
     }
     this.installedFonts.sort();
-    [this.initiallySelectedFont] = this.installedFonts;
+    if (this.preferredFont && this.installedFonts.includes(this.preferredFont)) {
+      this.initiallySelectedFont = this.preferredFont;
+    } else {
+      [this.initiallySelectedFont] = this.installedFonts;
+    }
     return this.installedFonts;
   }
 
