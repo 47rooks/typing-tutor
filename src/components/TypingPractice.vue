@@ -1,6 +1,6 @@
 <template>
   <div class="typing-practice">
-    <div id="controls">
+    <div id="control-pane">
       <ul>
         <li>
           <font-picker @selected="fontHandler"
@@ -23,19 +23,26 @@
             id="practice-button"
             type="button"
             @click="practiceHdlr"
-            :disabled="practiceDisabled"
+            :disabled="practiceButtonDisabled"
           >
             Practice
           </button>
         </li>
         <li>
-          <button type="button" @click="clearHdlr" :disabled="clearDisabled">Clear</button>
+          <button
+            id="clear-button"
+            type="button"
+            @click="clearHdlr"
+            :disabled="clearButtonDisabled"
+          >
+            Clear
+          </button>
         </li>
       </ul>
     </div>
     <div id="reference-pane" v-bind:style="referencePaneStyle">
       <textarea
-        id="referenceTA"
+        id="reference-ta"
         :rows="refTextareaRows"
         :cols="refTextareaCols"
         v-model="reftext"
@@ -53,7 +60,6 @@
           id="practice-line"
           size="80"
           :value="practiceLineText"
-          @input="characterHdlr"
           @keydown="enterHdlr"
           :style="practiceInputStyle"
         />

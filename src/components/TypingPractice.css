@@ -12,10 +12,10 @@ li {
 a {
   color: #42b983;
 }
-div#controls {
+div#control-pane {
   margin-bottom: 5px;
 }
-div#controls > ul > li > span {
+div#control-pane > ul > li > span {
   margin: 0 5px;
 }
 div#typing-pane {

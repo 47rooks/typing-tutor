@@ -2,16 +2,7 @@ import { Component, Vue } from 'vue-property-decorator';
 import FontPicker from './FontPicker.vue';
 
 /*
- * BUGS
- * ----
- * resetting text size after pasting increases referenceTA width and height, rather than
- *     rebreaking. This appears to happen only on the initial paste if the user has not
- *     manually resized the box. This may be naturally how it works.
- * if there are two blanks at the break point the first word of the next line ends up on
- *     this line. This is the opposite issue where the last word of the current line is added
- *     to the next one, which is caused by the stepping back from the breakpoint before checking.
- * Not clear in exampleLine anymore that you have a  blank line.
- *     Poss. fixes Tweak color ? Insert BLANK LINE, HIT RETURN text ?
+ * Typing practice Vue component
  */
 @Component({
   components: {
@@ -20,6 +11,9 @@ import FontPicker from './FontPicker.vue';
 })
 export default class TypingPractice extends Vue {
   // ----------- Private-use member variables
+
+  // User has finished typing the current practice line, currently indicated by
+  // hitting return.
   private lineComplete = false;
 
   // Array containing lines of text that are each as long as their corresponding line
@@ -54,11 +48,11 @@ export default class TypingPractice extends Vue {
   
   When you are done hit the Clear button to reset and paste in new text.`;
 
-  // Reference text that the user paste in to then copy as a typing
-  // exercise.
+  // Reference text that the user pasted in to use as a typing exercise.
   private reftext = '';
 
-  private practiceButtonDisabled = false;
+  // Whether to report the Practice button as disabled or not, true if disabled.
+  private disablePracticeButton = false;
 
   // Text size options for reference text textarea
   private textsizes = [7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40];
@@ -71,19 +65,26 @@ export default class TypingPractice extends Vue {
   // Whether the pane is visible or not.  Initially not.
   private typingPaneVisible = false;
 
+  // The text the user has typed, ideally it matches the practice text.
   private typedPracticeText = '';
 
   private numTypedPracticeLines = 0;
 
+  // Practice text that the user has not got to yet.
   private yetToBeTypedPracticeText = '';
 
+  // The next line in the to-be-practiced text.
   private nextYetToBeTypedPracticeLine = 0;
 
+  // The current line the user is practicing typing.
   private textExampleLine = '';
 
+  // The <input> element text that the user types. This is the user's practice for
+  // the current line. It is not currently compared to the reference or checked for
+  // accuracy.
   private practiceLineText = '';
 
-  // font-picker support
+  // List of fonts to be presented by the font-picker
   FONT_LIST = [
     'Accordance',
     'Cardo',
@@ -95,15 +96,51 @@ export default class TypingPractice extends Vue {
 
   PREFERRED_FONT = 'Accordance';
 
-  // The selected font in which to render text
+  // The selected font in which to render all text
   private chosenFont = this.PREFERRED_FONT;
 
-  get textareaStyle() {
-    return `resize: horizontal; font-family: ${this.chosenFont}; font-size: ${this.curTextsize}px`;
+  /**
+   * ---------------------------------------------------
+   * Computed properties for the Reference pane - pane 1
+   * ---------------------------------------------------
+   */
+
+  /**
+   * Reference div visibility
+   */
+  get referencePaneStyle(): object {
+    if (this.referencePaneVisble) {
+      return {
+        display: 'inline',
+        visibility: 'visible',
+      };
+    }
+    return {
+      display: 'none',
+      visibility: 'hidden',
+    };
   }
 
-  // 'background-color': 'rgb(197, 226, 213)',
+  /**
+   * Computed overall style for the textarea, which receives the practice text
+   */
+  get textareaStyle(): object {
+    return {
+      resize: 'horizontal',
+      'font-family': `${this.chosenFont}`,
+      'font-size': `${this.curTextsize}px`,
+    };
+  }
 
+  /**
+   * ---------------------------------------------------
+   * Computed properties for the Practice pane - pane 2
+   * ---------------------------------------------------
+   */
+
+  /**
+   * Computed overall style for the typing pane - the app's second page
+   */
   get typingPaneStyle(): object {
     if (this.typingPaneVisible) {
       return {
@@ -119,13 +156,10 @@ export default class TypingPractice extends Vue {
     };
   }
 
-  get referencePaneStyle(): string {
-    if (this.referencePaneVisble) {
-      return 'display: inline; visibility: visible';
-    }
-    return 'display: none; visibility: hidden';
-  }
-
+  /**
+   * Computed style for the reference text before it is typed and the typed text, after
+   * it is typed and scrolling up the screen.
+   */
   get typedTextStyle(): object {
     return {
       'text-align': 'justify',
@@ -133,37 +167,53 @@ export default class TypingPractice extends Vue {
     };
   }
 
+  /**
+   * Computed <input> element font style
+   */
   get practiceInputStyle(): object {
     return {
-      'font-family': `${this.chosenFont}; font-size: ${this.curTextsize}`,
+      'font-family': `${this.chosenFont}; font-size: ${this.curTextsize}px`,
     };
   }
 
-  get practiceDisabled() {
-    return this.reftext === '' || this.practiceButtonDisabled;
+  /**
+   * Computed property for enabling the practice button.
+   */
+  get practiceButtonDisabled(): boolean {
+    return this.reftext === '' || this.disablePracticeButton;
   }
 
-  get clearDisabled() {
+  /**
+   * Computed property for disabling the clear button.
+   */
+  get clearButtonDisabled(): boolean {
     return this.reftext === '';
   }
 
   /**
-   * Handle the font selected by the user
+   * Handle the font selected by the user. The member variable feeds the various
+   * computed properties which style their fonts.
    * @param chosenFont the font name the user chose
    */
-  fontHandler(chosenFont: string) {
+  fontHandler(chosenFont: string): void {
     this.chosenFont = chosenFont;
   }
 
+  /**
+   * Handler function for the Practice button.
+   * This function takes the input text and splits it into lines to present to the user
+   * switches from the reference text pane to the typing pane, setting button states
+   * appropriately.
+   */
   practiceHdlr(): void {
     // Make the typing pane visible and populate it
     this.showTypingPane();
     // Create the array of lines to practice through
-    this.referenceTextLines = this.applyLineBreaks('referenceTA');
+    this.referenceTextLines = this.applyLineBreaks('reference-ta');
     // Hide the reference-pane
     this.hideReferencePane();
     // Disable practice button
-    this.practiceButtonDisabled = true;
+    this.disablePracticeButton = true;
     // Get the practice box, clear it and set focus
     this.textExampleLine = this.referenceTextLines[this.referenceTextNextLine];
     this.referenceTextNextLine += 1;
@@ -187,10 +237,14 @@ export default class TypingPractice extends Vue {
     }, 30);
   }
 
+  /**
+   * Handler function for the Clear button.
+   * This function resets all state and switches back to the reference text paste-in page.
+   */
   clearHdlr(): void {
     this.reftext = '';
     // enable the Practice and Clear buttons
-    this.practiceButtonDisabled = false;
+    this.disablePracticeButton = false;
 
     this.hideTypingPane();
     this.showReferencePane();
@@ -208,14 +262,16 @@ export default class TypingPractice extends Vue {
     this.refTextareaRows = this.DEFAULT_REF_TEXTAREA_ROWS;
   }
 
-  characterHdlr(event: InputEvent) {
-    const character = event.data;
-    if (character === '\n' || character === '\r') {
-      this.lineComplete = true;
-    }
-  }
-
-  enterHdlr(event: KeyboardEvent) {
+  /**
+   * Handler function for the end of each typed line.
+   * This function handles the end of line:
+   *   - moving the typed text from the input box to the output text
+   *   - moving the next line in from the yet-to-be-typed text
+   *   - handles intervening blank lines
+   *   - handles completion of the practice text
+   * @param event event containing the typed character
+   */
+  enterHdlr(event: KeyboardEvent): void {
     if (event && event.keyCode === 13) {
       // Copy line to typed area
       const inputElt = document.getElementById('practice-line') as HTMLInputElement;
@@ -249,11 +305,12 @@ export default class TypingPractice extends Vue {
       this.practiceLineText = '';
 
       // Shuffle the yet-to-be-typed-text
-      let idx = this.yetToBeTypedPracticeText.search('<br>');
+      const lineBreak = '<br>';
+      let idx = this.yetToBeTypedPracticeText.search(lineBreak);
       if (idx === -1) {
         this.yetToBeTypedPracticeText = '';
       } else {
-        idx += 4;
+        idx += lineBreak.length;
         this.yetToBeTypedPracticeText = this.yetToBeTypedPracticeText.substr(idx);
         if (this.nextYetToBeTypedPracticeLine < this.referenceTextLines.length) {
           textToAdd = this.referenceTextLines[this.nextYetToBeTypedPracticeLine];
@@ -272,13 +329,14 @@ export default class TypingPractice extends Vue {
    * This is done by cloning the text area and using the clone as a way to test
    * each line break. This technique is an adaptation of the code found at:
    * https://stackoverflow.com/questions/4719777/finding-line-breaks-in-textarea-that-is-word-wrapping-arabic-text
-   * Much thanx to the contributors.
+   * Many thanx to the contributors.
    * Apart from using a separate area and not replacing the original which I need to keep
    * this version:
-   *    is adjusted to handle, and retrain, blank lines in the input text,
+   *    is adjusted to handle, and retain, blank lines in the input text,
    *    is converted to Typescript
    *    fixes the bug where the original would move the last word of a line to the next
-   *        line if the breaking character was whitespace
+   *        line if the breaking character was whitespace. Actually it only moves the bug
+   *        to cause the break too early in some cases.
    */
   /* eslint-disable-next-line class-methods-use-this */
   private applyLineBreaks(strTextAreaId: string): string[] {

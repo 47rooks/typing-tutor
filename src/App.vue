@@ -1,14 +1,14 @@
 <template>
   <div id="app">
-    <!-- FIXME see how to integrate into the 47rooks website LandF -->
-    <span style="display: none">
-      <img alt="Vue logo" src="./assets/MemZayin64PaleGreen.png" width="28px" height="28px" />
-    </span>
-
-    <h1>
-      Typing Practice Tool
-    </h1>
+    <h1>Typing Practice Tool</h1>
     <TypingPractice msg="Welcome to Your Vue.js + TypeScript App" />
+        <!-- <header>
+      <div>
+      <span></span>
+      <img id="logo" alt="47Rooks logo" src="assets/MemZayin64PaleGreen.png"/>
+    </div>
+  </header> -->
+
   </div>
 </template>
 
@@ -37,8 +37,6 @@ input {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
-}
-#app img {
-  text-align: left;
+  /* color: #043d00;  Standard 47rooks green*/
 }
 </style>
