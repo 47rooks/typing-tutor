@@ -55,6 +55,7 @@
           :value="practiceLineText"
           @input="characterHdlr"
           @keydown="enterHdlr"
+          :style="practiceInputStyle"
         />
         <div id="yet-to-be-typed-text-pane">
           <p id="yet-to-be-typed-text" :style="typedTextStyle">

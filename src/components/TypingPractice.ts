@@ -133,6 +133,12 @@ export default class TypingPractice extends Vue {
     };
   }
 
+  get practiceInputStyle(): object {
+    return {
+      'font-family': `${this.chosenFont}; font-size: ${this.curTextsize}`,
+    };
+  }
+
   get practiceDisabled() {
     return this.reftext === '' || this.practiceButtonDisabled;
   }
