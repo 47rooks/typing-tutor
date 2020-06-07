@@ -1,14 +1,12 @@
 <template>
   <div id="app">
-    <h1>Typing Practice Tool</h1>
+    <header>
+    <span>Typing Practice Tool</span>
+    <a href="http://47rooks.com">
+      <img id="logo" src="./images/MemZayin64PaleGreen.png">
+    </a>
+    </header>
     <TypingPractice msg="Welcome to Your Vue.js + TypeScript App" />
-        <!-- <header>
-      <div>
-      <span></span>
-      <img id="logo" alt="47Rooks logo" src="assets/MemZayin64PaleGreen.png"/>
-    </div>
-  </header> -->
-
   </div>
 </template>
 
@@ -38,5 +36,21 @@ input {
   color: #2c3e50;
   margin-top: 60px;
   /* color: #043d00;  Standard 47rooks green*/
+}
+img#logo {
+  float: right;
+}
+div#app > header {
+  /* width:100%;*/
+  height:80px;
+  width: 80%;
+  margin: auto;
+  background:#fff;    /* #d1e0e1; */
+  color:#043d00;                /*   #333;*/
+  font-weight: normal;
+  font-size: 30px;
+  text-align:center;
+  line-height: 80px;
+  vertical-align: baseline;
 }
 </style>
