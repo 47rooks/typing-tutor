@@ -450,19 +450,21 @@ export default class TypingPractice extends Vue {
     if (event && event.keyCode === 13) {
       // Get entered text
       const inputElt = document.getElementById('practice-line') as HTMLInputElement;
-      let textToAdd = inputElt.value;
 
       // Validate entered line against the practice text line
       if (this.showCorrections) {
-        this.showTypingErrors(textToAdd);
+        this.showTypingErrors(inputElt.value);
       }
+
+      // let textToAdd = inputElt.value;
+      let textToAdd = this.textExampleLine;
 
       // Copy line to typed area
       if (textToAdd.length === 0 || textToAdd === '\n' || textToAdd === '') {
         textToAdd = '&nbsp;';
       }
       if (this.typedPracticeText.length > 0) {
-        if (this.numTypedPracticeLines > 5) {
+        if (this.numTypedPracticeLines > 4) {
           const idx = this.typedPracticeText.search('<br>') + 4;
           this.typedPracticeText = this.typedPracticeText.substr(idx);
         }
