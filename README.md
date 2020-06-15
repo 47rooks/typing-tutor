@@ -28,6 +28,15 @@ npm run lint
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
+### Deploy for production
+
+   + ```npm run build```
+   + Go to the dist directory and upload all the objects to the production GCP bucket.
+     + Remember not to upload the favicon as that is Vue's not mine
+     + Remember to upload everything else because the build recreates everything with a unique name
+     + Delete the old files that you are replacing.
+       + In theory you can leave them in place and replace index.html last and the old version will work until the new one is in place.
+
 ### Known Bugs/ToDos
 
    + Changing size of font does not work during the actual practice typing session. We should 
@@ -42,5 +51,3 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
    + there is no final stop. Instead the user can keep typing and hitting return pushing the text
    further up the screen. Harmless but not very good.
    + 'You are done' is not very explanatory as to next moves.
-   + Figure out integration into the fortysevenrooks.com site.
-      + Add support for the msg parameter as the title if that is the correct way to go or remove it.
