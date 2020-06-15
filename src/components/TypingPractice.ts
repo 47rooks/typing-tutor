@@ -1,5 +1,10 @@
 import { Component, Vue } from 'vue-property-decorator';
+import GraphemeSplitter from 'grapheme-splitter';
 import FontPicker from './FontPicker.vue';
+
+const COLOR_ADDED = 'color:orange';
+const COLOR_OMITTED = 'color:blue';
+const COLOR_DIFFERENT = 'color:red';
 
 /*
  * Typing practice Vue component
@@ -40,7 +45,7 @@ export default class TypingPractice extends Vue {
   Welcome to the Typing Practice Tool.
   
   Paste your practice text into this window. Then choose the display font you want to use.
-  Set the size. Edit out and bits of the text you don't want to practice. Resize the textarea
+  Set the size. Edit out any bits of the text you don't want to practice. Resize the textarea
   to set the basic line length you want.
   
   Hit the Practice button and you will be led through the practice text one line at a time.
@@ -83,6 +88,13 @@ export default class TypingPractice extends Vue {
   // the current line. It is not currently compared to the reference or checked for
   // accuracy.
   private practiceLineText = '';
+
+  // Correction marking members
+  private showCorrections = true;
+
+  private annotatedRefLine = '';
+
+  private annotatedTypedLine = '';
 
   // List of fonts to be presented by the font-picker
   FONT_LIST = [
@@ -177,6 +189,22 @@ export default class TypingPractice extends Vue {
   }
 
   /**
+   * Computed visibility for corrections pane
+   */
+  get correctionsPaneStyle(): object {
+    if (this.showCorrections && (this.annotatedRefLine !== '' || this.annotatedTypedLine !== '')) {
+      return {
+        display: 'inline',
+        visibility: 'visible',
+      };
+    }
+    return {
+      display: 'none',
+      visibility: 'hidden',
+    };
+  }
+
+  /**
    * Computed property for enabling the practice button.
    */
   get practiceButtonDisabled(): boolean {
@@ -260,6 +288,137 @@ export default class TypingPractice extends Vue {
     this.curTextsize = this.DEFAULT_TEXT_SIZE;
     this.refTextareaCols = this.DEFAULT_REF_TEXTAREA_COLS;
     this.refTextareaRows = this.DEFAULT_REF_TEXTAREA_ROWS;
+    // Reset corrections pane
+    this.annotatedTypedLine = '';
+    this.annotatedRefLine = '';
+  }
+
+  /**
+   * This function is called from the enterHdlr function to ensure that the character entered
+   * matches the corresponding one in the practice text.
+   * @param event KeyboardEvent for the key release
+   */
+  showTypingErrors(typedLine: string): void {
+    // const f = this.curTextsize;
+    // const gs = new GraphemeSplitter();
+    let corrected = '<span>';
+    let annotatedRef = '<span>';
+    const refTextNFD = this.textExampleLine.trim().normalize('NFD');
+    const enteredTextNFD = typedLine.trim().normalize('NFD');
+    console.log(`NFD ref: ${refTextNFD}`);
+    console.log(`NFD ent: ${enteredTextNFD}`);
+    // Split on whitespace to get "words" - this constrains the corrections so we don't
+    //   incorrectly mark the whole remaining string in error if characters are added or
+    //   omitted in a word.
+    const refTextNFDGrWords: string[] = refTextNFD.split(' ');
+    const enteredTextNFDGrWords: string[] = enteredTextNFD.split(' ');
+
+    if (enteredTextNFD !== refTextNFD) {
+      // Correct with respect to the list of reference words
+      for (let i = 0; i < refTextNFDGrWords.length; i += 1) {
+        if (i < enteredTextNFDGrWords.length && refTextNFDGrWords[i] === enteredTextNFDGrWords[i]) {
+          corrected += enteredTextNFDGrWords[i];
+          annotatedRef += refTextNFDGrWords[i];
+        } else if (i >= enteredTextNFDGrWords.length) {
+          break;
+        } else {
+          const diffRes = TypingPractice.diffWord(enteredTextNFDGrWords[i], refTextNFDGrWords[i]);
+          corrected += diffRes.annotatedEnteredWord;
+          annotatedRef += diffRes.annotatedRefWord;
+        }
+        // Reinstate interword separator
+        corrected += ' ';
+        annotatedRef += ' ';
+      }
+      // Remove trailing whitespace introduced by reconstitution of corrected form
+      corrected.trimEnd();
+      corrected += '</span>';
+      annotatedRef.trimEnd();
+      annotatedRef += '</span>';
+      this.annotatedRefLine = annotatedRef;
+      this.annotatedTypedLine = corrected;
+    } else {
+      // no corrections
+      this.annotatedRefLine = '';
+      this.annotatedTypedLine = '';
+    }
+  }
+
+  private static diffWord(enteredWord: string, refWord: string): {
+    diffMetric: number; annotatedRefWord: string; annotatedEnteredWord: string;
+  } {
+    const gs = new GraphemeSplitter();
+    const refWordNFDGr: string[] = gs.splitGraphemes(refWord);
+    const enteredWordNFDGr: string[] = gs.splitGraphemes(enteredWord);
+    let annotatedEnteredWord = '<span>';
+    let annotatedRefWord = '<span>';
+    const refLen = refWordNFDGr.length;
+    const enteredLen = enteredWordNFDGr.length;
+    // const checkedRef: boolean[] = [];
+    // const checkedEntered: boolean[] = [];
+    let currentRef = 0;
+    let currentEntered = 0;
+    let done = false;
+    const diffMetric = 0;
+
+    while (!done) {
+      if (currentRef === refLen && currentEntered < enteredLen) {
+        // Extra graphemes left over in entered word
+        annotatedEnteredWord += `<span style="${COLOR_ADDED}">`;
+        const gsToCopy = enteredWordNFDGr.length - refWordNFDGr.length;
+        for (let k = 0; k < gsToCopy; k += 1) {
+          annotatedEnteredWord += enteredWordNFDGr[refWordNFDGr.length + k];
+        }
+        annotatedEnteredWord += '</span>';
+        currentEntered += gsToCopy;
+      } else if (currentRef < refLen && currentEntered === enteredLen) {
+        // Extra graphemes left over in the reference word
+        annotatedRefWord += `<span style="${COLOR_OMITTED}">`;
+        const gsToCopy = refWordNFDGr.length - enteredWordNFDGr.length;
+        for (let k = 0; k < gsToCopy; k += 1) {
+          annotatedRefWord += refWordNFDGr[enteredWordNFDGr.length + k];
+        }
+        annotatedRefWord += '</span>';
+        currentRef += gsToCopy;
+      } else if (refWordNFDGr[currentRef] === enteredWordNFDGr[currentEntered]) {
+        // current graphemes match
+        annotatedEnteredWord += `${enteredWordNFDGr[currentEntered]}`;
+        annotatedRefWord += refWordNFDGr[currentRef];
+        currentRef += 1;
+        currentEntered += 1;
+      } else if (currentRef + 1 < refLen
+        && refWordNFDGr[currentRef + 1] === enteredWordNFDGr[currentEntered]) {
+        // entered word is missing character in the current slot
+        annotatedRefWord += `<span style="${COLOR_OMITTED}">${refWordNFDGr[currentRef]}</span>`;
+        annotatedRefWord += refWordNFDGr[currentRef + 1];
+        currentRef += 2;
+        annotatedEnteredWord += `${enteredWordNFDGr[currentEntered]}`;
+        currentEntered += 1;
+      } else if (currentEntered + 1 < enteredLen
+        && refWordNFDGr[currentRef] === enteredWordNFDGr[currentEntered + 1]) {
+        // entered word has an extra character in the current slot
+        annotatedEnteredWord += `<span style="${COLOR_ADDED}">${enteredWordNFDGr[currentEntered]}</span>`;
+        annotatedEnteredWord += enteredWordNFDGr[currentEntered + 1];
+        currentEntered += 2;
+        annotatedRefWord += `${refWordNFDGr[currentRef]}`;
+        currentRef += 1;
+      } else {
+        // Just this character is wrong or there are multiple errors in sequence - give up for now
+        // Assume the former and update reference as ok and entered as different
+        annotatedRefWord += refWordNFDGr[currentRef];
+        annotatedEnteredWord += `<span style="${COLOR_DIFFERENT}">${enteredWordNFDGr[currentEntered]}</span>`;
+        currentRef += 1;
+        currentEntered += 1;
+      }
+
+      // Check termination condition for diffing
+      if (currentRef >= refLen && currentEntered >= enteredLen) {
+        done = true;
+      }
+    }
+    annotatedRefWord += '</span>';
+    annotatedEnteredWord += '</span>';
+    return { diffMetric, annotatedRefWord, annotatedEnteredWord };
   }
 
   /**
@@ -273,9 +432,16 @@ export default class TypingPractice extends Vue {
    */
   enterHdlr(event: KeyboardEvent): void {
     if (event && event.keyCode === 13) {
-      // Copy line to typed area
+      // Get entered text
       const inputElt = document.getElementById('practice-line') as HTMLInputElement;
       let textToAdd = inputElt.value;
+
+      // Validate entered line against the practice text line
+      if (this.showCorrections) {
+        this.showTypingErrors(textToAdd);
+      }
+
+      // Copy line to typed area
       if (textToAdd.length === 0 || textToAdd === '\n' || textToAdd === '') {
         textToAdd = '&nbsp;';
       }
@@ -285,8 +451,10 @@ export default class TypingPractice extends Vue {
           this.typedPracticeText = this.typedPracticeText.substr(idx);
         }
         this.typedPracticeText = `${this.typedPracticeText}<br>${textToAdd}`;
+        // this.typedPracticeText = `${this.typedPracticeText}<br>${correctedText}`;
       } else {
         this.typedPracticeText = textToAdd;
+        // this.typedPracticeText = correctedText;
       }
       this.numTypedPracticeLines += 1;
 

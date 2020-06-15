@@ -53,3 +53,16 @@ div#typing-pane input {
   font-size: 150%;
   margin-bottom: 10px;
 }
+/* Corrections pane layout and styling
+ */
+div#corrections-pane {
+  font-size: 100%;
+  background-color: #FCFBD9;
+  width: 75%;
+  margin: 0 auto;
+  border-radius: 10px;
+}
+div#corrections-pane td {
+  text-align: justify;
+  padding: 0px 10px 0px 10px;
+}

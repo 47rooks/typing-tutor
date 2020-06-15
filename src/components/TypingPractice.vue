@@ -19,6 +19,10 @@
           </select>
         </li>
         <li>
+          <span>Highlight errors</span>
+          <input type="checkbox" id="show-correction" v-model="showCorrections">
+        </li>
+        <li>
           <button
             id="practice-button"
             type="button"
@@ -54,6 +58,20 @@
       <div id="typing-pane-color-layer">
         <div id="typed-text-pane">
           <p id="typed-text" :style="typedTextStyle"><span v-html="typedPracticeText"></span></p>
+        </div>
+        <div id="correction-pane-vis" v-bind:style="correctionsPaneStyle">
+          <div id="corrections-pane">
+            <table>
+              <tr>
+                <td>Reference</td>
+                <td id="annotated-ref-line"><span v-html="annotatedRefLine"></span></td>
+              </tr>
+              <tr>
+                <td>Typed</td>
+                <td id="annotated-typed-line"><span v-html="annotatedTypedLine"></span></td>
+              </tr>
+            </table>
+          </div>
         </div>
         <p id="ref-line"><span v-html="textExampleLine"></span></p>
         <input
