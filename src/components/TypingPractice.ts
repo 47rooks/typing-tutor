@@ -205,6 +205,22 @@ export default class TypingPractice extends Vue {
   }
 
   /**
+   * Computed visibility for the corrections color key
+   */
+  get correctionsKeyStyle() {
+    if (this.showCorrections) {
+      return {
+        display: 'inline',
+        visibility: 'visible',
+      };
+    }
+    return {
+      display: 'none',
+      visibility: 'hidden',
+    };
+  }
+
+  /**
    * Computed property for enabling the practice button.
    */
   get practiceButtonDisabled(): boolean {

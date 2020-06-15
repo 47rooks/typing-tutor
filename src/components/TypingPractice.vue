@@ -43,6 +43,11 @@
           </button>
         </li>
       </ul>
+      <ul :style="correctionsKeyStyle">
+        <li><span style="color:orange">Orange text, added</span></li>
+        <li><span style="color:blue">Blue text, omitted, marked on reference</span></li>
+        <li><span style="color:red">Red text, incorrect</span></li>
+      </ul>
     </div>
     <div id="reference-pane" v-bind:style="referencePaneStyle">
       <textarea
