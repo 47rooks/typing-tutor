@@ -6,7 +6,7 @@
       <img id="logo" src="./images/MemZayin64PaleGreen.png">
     </a>
     </header>
-    <TypingPractice msg="Welcome to Your Vue.js + TypeScript App" />
+    <TypingPractice/>
   </div>
 </template>
 
