@@ -317,8 +317,8 @@ export default class TypingPractice extends Vue {
   showTypingErrors(typedLine: string): void {
     // const f = this.curTextsize;
     // const gs = new GraphemeSplitter();
-    let corrected = '<span>';
-    let annotatedRef = '<span>';
+    let annotatedEnteredLine = '<span>';
+    let annotatedRefLine = '<span>';
     const refTextNFD = this.textExampleLine.trim().normalize('NFD');
     const enteredTextNFD = typedLine.trim().normalize('NFD');
     console.log(`NFD ref: ${refTextNFD}`);
@@ -328,36 +328,95 @@ export default class TypingPractice extends Vue {
     //   omitted in a word.
     const refTextNFDGrWords: string[] = refTextNFD.split(' ');
     const enteredTextNFDGrWords: string[] = enteredTextNFD.split(' ');
+    let done = false;
+    let currentRefWord = 0;
+    let currentEnteredWord = 0;
+    const numRefWords = refTextNFDGrWords.length;
+    const numEnteredWords = enteredTextNFDGrWords.length;
 
-    if (enteredTextNFD !== refTextNFD) {
-      // Correct with respect to the list of reference words
-      for (let i = 0; i < refTextNFDGrWords.length; i += 1) {
-        if (i < enteredTextNFDGrWords.length && refTextNFDGrWords[i] === enteredTextNFDGrWords[i]) {
-          corrected += enteredTextNFDGrWords[i];
-          annotatedRef += refTextNFDGrWords[i];
-        } else if (i >= enteredTextNFDGrWords.length) {
-          break;
-        } else {
-          const diffRes = TypingPractice.diffWord(enteredTextNFDGrWords[i], refTextNFDGrWords[i]);
-          corrected += diffRes.annotatedEnteredWord;
-          annotatedRef += diffRes.annotatedRefWord;
+    while (!done) {
+      if (currentRefWord === numRefWords && currentEnteredWord === numEnteredWords) {
+        // entered line has more words than reference
+        annotatedEnteredLine += `<span style="${COLOR_ADDED}">`;
+        const wordsToCopy = numEnteredWords - numRefWords;
+        for (let k = 0; k < wordsToCopy; k += 1) {
+          annotatedEnteredLine += `${enteredTextNFDGrWords[numRefWords + k]} `;
         }
-        // Reinstate interword separator
-        corrected += ' ';
-        annotatedRef += ' ';
+        annotatedEnteredLine += '</span>';
+        currentEnteredWord += wordsToCopy;
+      } else if (currentRefWord < numRefWords && currentEnteredWord === numEnteredWords) {
+        // reference line has more words than the typed line
+        annotatedRefLine += `<span style="${COLOR_OMITTED}">`;
+        const wordsToCopy = numRefWords - numEnteredWords;
+        for (let k = 0; k < wordsToCopy; k += 1) {
+          annotatedRefLine += `${refTextNFDGrWords[numEnteredWords + k]} `;
+        }
+        annotatedRefLine += '</span>';
+        currentRefWord += wordsToCopy;
+      } else {
+        const { diffMetric, annotatedRefWord, annotatedEnteredWord } = TypingPractice.diffWord(
+          enteredTextNFDGrWords[currentEnteredWord], refTextNFDGrWords[currentRefWord],
+        );
+        if (diffMetric === 0) {
+          // current words match
+          annotatedEnteredLine += `${annotatedEnteredWord} `;
+          annotatedRefLine += `${annotatedRefWord} `;
+          currentRefWord += 1;
+          currentEnteredWord += 1;
+        } else {
+          let adjacentMatch = false;
+          if (currentRefWord + 1 < numRefWords) {
+            // entered line is missing word in the current slot
+            const rv = TypingPractice.diffWord(
+              enteredTextNFDGrWords[currentEnteredWord], refTextNFDGrWords[currentRefWord + 1],
+            );
+            const { diffMetric: dM, annotatedRefWord: aRW, annotatedEnteredWord: aEW } = rv;
+            if (dM === 0) {
+              annotatedRefLine += `<span style="${COLOR_OMITTED}">${refTextNFDGrWords[currentRefWord]} </span>`;
+              annotatedRefLine += `${aRW} `;
+              currentRefWord += 2;
+              annotatedEnteredLine += `${aEW} `;
+              currentEnteredWord += 1;
+              adjacentMatch = true;
+            }
+          }
+          if (currentEnteredWord + 1 < numEnteredWords && !adjacentMatch) {
+            // entered line has an extra word in the current slot
+            const rv = TypingPractice.diffWord(
+              enteredTextNFDGrWords[currentEnteredWord + 1], refTextNFDGrWords[currentRefWord],
+            );
+            const { diffMetric: dM, annotatedRefWord: aRW, annotatedEnteredWord: aEW } = rv;
+            if (dM === 0) {
+              annotatedEnteredLine += `<span style="${COLOR_ADDED}">${enteredTextNFDGrWords[currentEnteredWord]} </span>`;
+              annotatedEnteredLine += `${aEW} `;
+              currentEnteredWord += 2;
+              annotatedRefLine += `${aRW} `;
+              currentRefWord += 1;
+              adjacentMatch = true;
+            }
+          }
+          if (!adjacentMatch) {
+            // Just this word is wrong or there are multiple errors in sequence - give up for now
+            // Assume the former and update reference as ok and entered as different
+            annotatedRefLine += `${annotatedRefWord} `;
+            // annotatedEnteredLine +=
+            // `<span style="${COLOR_DIFFERENT}">${annotatedEnteredWord} </span>`;
+            annotatedEnteredLine += `${annotatedEnteredWord} `;
+            currentRefWord += 1;
+            currentEnteredWord += 1;
+          }
+        }
       }
-      // Remove trailing whitespace introduced by reconstitution of corrected form
-      corrected.trimEnd();
-      corrected += '</span>';
-      annotatedRef.trimEnd();
-      annotatedRef += '</span>';
-      this.annotatedRefLine = annotatedRef;
-      this.annotatedTypedLine = corrected;
-    } else {
-      // no corrections
-      this.annotatedRefLine = '';
-      this.annotatedTypedLine = '';
+
+      // Check termination condition for diffing
+      if (currentRefWord >= numRefWords && currentEnteredWord >= numEnteredWords) {
+        done = true;
+      }
     }
+    annotatedRefLine += '</span>';
+    annotatedEnteredLine += '</span>';
+    this.annotatedRefLine = annotatedRefLine.trimEnd();
+    this.annotatedTypedLine = annotatedEnteredLine.trimEnd();
   }
 
   private static diffWord(enteredWord: string, refWord: string): {
@@ -375,7 +434,7 @@ export default class TypingPractice extends Vue {
     let currentRef = 0;
     let currentEntered = 0;
     let done = false;
-    const diffMetric = 0;
+    let diffMetric = 0;
 
     while (!done) {
       if (currentRef === refLen && currentEntered < enteredLen) {
@@ -387,6 +446,7 @@ export default class TypingPractice extends Vue {
         }
         annotatedEnteredWord += '</span>';
         currentEntered += gsToCopy;
+        diffMetric = 1;
       } else if (currentRef < refLen && currentEntered === enteredLen) {
         // Extra graphemes left over in the reference word
         annotatedRefWord += `<span style="${COLOR_OMITTED}">`;
@@ -396,6 +456,7 @@ export default class TypingPractice extends Vue {
         }
         annotatedRefWord += '</span>';
         currentRef += gsToCopy;
+        diffMetric = 1;
       } else if (refWordNFDGr[currentRef] === enteredWordNFDGr[currentEntered]) {
         // current graphemes match
         annotatedEnteredWord += `${enteredWordNFDGr[currentEntered]}`;
@@ -410,6 +471,7 @@ export default class TypingPractice extends Vue {
         currentRef += 2;
         annotatedEnteredWord += `${enteredWordNFDGr[currentEntered]}`;
         currentEntered += 1;
+        diffMetric = 1;
       } else if (currentEntered + 1 < enteredLen
         && refWordNFDGr[currentRef] === enteredWordNFDGr[currentEntered + 1]) {
         // entered word has an extra character in the current slot
@@ -418,6 +480,7 @@ export default class TypingPractice extends Vue {
         currentEntered += 2;
         annotatedRefWord += `${refWordNFDGr[currentRef]}`;
         currentRef += 1;
+        diffMetric = 1;
       } else {
         // Just this character is wrong or there are multiple errors in sequence - give up for now
         // Assume the former and update reference as ok and entered as different
@@ -425,6 +488,7 @@ export default class TypingPractice extends Vue {
         annotatedEnteredWord += `<span style="${COLOR_DIFFERENT}">${enteredWordNFDGr[currentEntered]}</span>`;
         currentRef += 1;
         currentEntered += 1;
+        diffMetric = 1;
       }
 
       // Check termination condition for diffing
