@@ -92,9 +92,9 @@ export default class TypingPractice extends Vue {
   // Correction marking members
   private showCorrections = true;
 
-  private annotatedRefLine = '';
+  annotatedRefLine = '';
 
-  private annotatedTypedLine = '';
+  annotatedTypedLine = '';
 
   // List of fonts to be presented by the font-picker
   FONT_LIST = [
