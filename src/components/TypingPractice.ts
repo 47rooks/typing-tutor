@@ -317,8 +317,10 @@ export default class TypingPractice extends Vue {
   showTypingErrors(typedLine: string): void {
     // const f = this.curTextsize;
     // const gs = new GraphemeSplitter();
-    let annotatedEnteredLine = '<span>';
-    let annotatedRefLine = '<span>';
+    // let annotatedEnteredLine = '<span>';
+    // let annotatedRefLine = '<span>';
+    let annotatedEnteredLine = '';
+    let annotatedRefLine = '';
     const refTextNFD = this.textExampleLine.trim().normalize('NFD');
     const enteredTextNFD = typedLine.trim().normalize('NFD');
     console.log(`NFD ref: ${refTextNFD}`);
@@ -413,8 +415,8 @@ export default class TypingPractice extends Vue {
         done = true;
       }
     }
-    annotatedRefLine += '</span>';
-    annotatedEnteredLine += '</span>';
+    // annotatedRefLine += '</span>';
+    // annotatedEnteredLine += '</span>';
     this.annotatedRefLine = annotatedRefLine.trimEnd();
     this.annotatedTypedLine = annotatedEnteredLine.trimEnd();
   }
@@ -425,8 +427,10 @@ export default class TypingPractice extends Vue {
     const gs = new GraphemeSplitter();
     const refWordNFDGr: string[] = gs.splitGraphemes(refWord);
     const enteredWordNFDGr: string[] = gs.splitGraphemes(enteredWord);
-    let annotatedEnteredWord = '<span>';
-    let annotatedRefWord = '<span>';
+    // let annotatedEnteredWord = '<span>';
+    // let annotatedRefWord = '<span>';
+    let annotatedEnteredWord = '';
+    let annotatedRefWord = '';
     const refLen = refWordNFDGr.length;
     const enteredLen = enteredWordNFDGr.length;
     // const checkedRef: boolean[] = [];
@@ -496,8 +500,8 @@ export default class TypingPractice extends Vue {
         done = true;
       }
     }
-    annotatedRefWord += '</span>';
-    annotatedEnteredWord += '</span>';
+    // annotatedRefWord += '</span>';
+    // annotatedEnteredWord += '</span>';
     return { diffMetric, annotatedRefWord, annotatedEnteredWord };
   }
 
