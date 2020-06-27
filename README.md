@@ -20,6 +20,12 @@ npm run build
 npm run test:unit
 ```
 
+### Run tests with debugger
+```
+node ./node_modules/@vue/cli-service/bin/vue-cli-service.js test:unit --inspect-brk
+```
+Then connect to the designated port in VSCode and start the tests with run button.
+
 ### Lints and fixes files
 ```
 npm run lint

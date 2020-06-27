@@ -323,8 +323,6 @@ export default class TypingPractice extends Vue {
     let annotatedRefLine = '';
     const refTextNFD = this.textExampleLine.trim().normalize('NFD');
     const enteredTextNFD = typedLine.trim().normalize('NFD');
-    console.log(`NFD ref: ${refTextNFD}`);
-    console.log(`NFD ent: ${enteredTextNFD}`);
     // Split on whitespace to get "words" - this constrains the corrections so we don't
     //   incorrectly mark the whole remaining string in error if characters are added or
     //   omitted in a word.
@@ -337,21 +335,21 @@ export default class TypingPractice extends Vue {
     const numEnteredWords = enteredTextNFDGrWords.length;
 
     while (!done) {
-      if (currentRefWord === numRefWords && currentEnteredWord === numEnteredWords) {
+      if (currentRefWord === numRefWords && currentEnteredWord < numEnteredWords) {
         // entered line has more words than reference
         annotatedEnteredLine += `<span style="${COLOR_ADDED}">`;
-        const wordsToCopy = numEnteredWords - numRefWords;
+        const wordsToCopy = numEnteredWords - currentEnteredWord;
         for (let k = 0; k < wordsToCopy; k += 1) {
-          annotatedEnteredLine += `${enteredTextNFDGrWords[numRefWords + k]} `;
+          annotatedEnteredLine += `${enteredTextNFDGrWords[currentEnteredWord + k]} `;
         }
         annotatedEnteredLine += '</span>';
         currentEnteredWord += wordsToCopy;
       } else if (currentRefWord < numRefWords && currentEnteredWord === numEnteredWords) {
         // reference line has more words than the typed line
         annotatedRefLine += `<span style="${COLOR_OMITTED}">`;
-        const wordsToCopy = numRefWords - numEnteredWords;
+        const wordsToCopy = numRefWords - currentRefWord;
         for (let k = 0; k < wordsToCopy; k += 1) {
-          annotatedRefLine += `${refTextNFDGrWords[numEnteredWords + k]} `;
+          annotatedRefLine += `${refTextNFDGrWords[currentRefWord + k]} `;
         }
         annotatedRefLine += '</span>';
         currentRefWord += wordsToCopy;
@@ -444,9 +442,9 @@ export default class TypingPractice extends Vue {
       if (currentRef === refLen && currentEntered < enteredLen) {
         // Extra graphemes left over in entered word
         annotatedEnteredWord += `<span style="${COLOR_ADDED}">`;
-        const gsToCopy = enteredWordNFDGr.length - refWordNFDGr.length;
+        const gsToCopy = enteredLen - currentEntered;
         for (let k = 0; k < gsToCopy; k += 1) {
-          annotatedEnteredWord += enteredWordNFDGr[refWordNFDGr.length + k];
+          annotatedEnteredWord += enteredWordNFDGr[currentEntered + k];
         }
         annotatedEnteredWord += '</span>';
         currentEntered += gsToCopy;
@@ -454,9 +452,9 @@ export default class TypingPractice extends Vue {
       } else if (currentRef < refLen && currentEntered === enteredLen) {
         // Extra graphemes left over in the reference word
         annotatedRefWord += `<span style="${COLOR_OMITTED}">`;
-        const gsToCopy = refWordNFDGr.length - enteredWordNFDGr.length;
+        const gsToCopy = refLen - currentRef;
         for (let k = 0; k < gsToCopy; k += 1) {
-          annotatedRefWord += refWordNFDGr[enteredWordNFDGr.length + k];
+          annotatedRefWord += refWordNFDGr[currentRef + k];
         }
         annotatedRefWord += '</span>';
         currentRef += gsToCopy;
