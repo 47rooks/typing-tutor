@@ -254,6 +254,9 @@ export default class TypingPractice extends Vue {
     this.showTypingPane();
     // Create the array of lines to practice through
     this.referenceTextLines = this.applyLineBreaks('reference-ta');
+    // Strip out tabs as they cannot be entered easily in a browser while typing
+    //   and they result in invisible errors being flagged.
+    this.referenceTextLines = this.referenceTextLines.map((s) => TypingPractice.stripTabs(s));
     // Hide the reference-pane
     this.hideReferencePane();
     // Disable practice button
@@ -279,6 +282,19 @@ export default class TypingPractice extends Vue {
     setTimeout(() => {
       pBox.focus();
     }, 30);
+  }
+
+  /**
+   * Replace tabs in a string with a space and then replace all multiple spaces with just one.
+   * @param s string to replace spaces in.
+   */
+  private static stripTabs(s: string): string {
+    let rv = '';
+    // first convert tabs to spaces
+    rv = s.replace(/\t/g, ' ');
+    // convert any multiple spaces to single ones
+    rv = rv.replace(/  +/, ' ');
+    return rv;
   }
 
   /**
@@ -420,6 +436,9 @@ export default class TypingPractice extends Vue {
     if (errorsFound) {
       this.annotatedRefLine = annotatedRefLine.trimEnd();
       this.annotatedTypedLine = annotatedEnteredLine.trimEnd();
+    } else {
+      this.annotatedRefLine = '';
+      this.annotatedTypedLine = '';
     }
   }
 
