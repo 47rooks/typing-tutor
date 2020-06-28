@@ -333,6 +333,7 @@ export default class TypingPractice extends Vue {
     let currentEnteredWord = 0;
     const numRefWords = refTextNFDGrWords.length;
     const numEnteredWords = enteredTextNFDGrWords.length;
+    let errorsFound = false;
 
     while (!done) {
       if (currentRefWord === numRefWords && currentEnteredWord < numEnteredWords) {
@@ -344,6 +345,7 @@ export default class TypingPractice extends Vue {
         }
         annotatedEnteredLine += '</span>';
         currentEnteredWord += wordsToCopy;
+        errorsFound = true;
       } else if (currentRefWord < numRefWords && currentEnteredWord === numEnteredWords) {
         // reference line has more words than the typed line
         annotatedRefLine += `<span style="${COLOR_OMITTED}">`;
@@ -353,6 +355,7 @@ export default class TypingPractice extends Vue {
         }
         annotatedRefLine += '</span>';
         currentRefWord += wordsToCopy;
+        errorsFound = true;
       } else {
         const { diffMetric, annotatedRefWord, annotatedEnteredWord } = TypingPractice.diffWord(
           enteredTextNFDGrWords[currentEnteredWord], refTextNFDGrWords[currentRefWord],
@@ -364,6 +367,7 @@ export default class TypingPractice extends Vue {
           currentRefWord += 1;
           currentEnteredWord += 1;
         } else {
+          errorsFound = true;
           let adjacentMatch = false;
           if (currentRefWord + 1 < numRefWords) {
             // entered line is missing word in the current slot
@@ -413,10 +417,10 @@ export default class TypingPractice extends Vue {
         done = true;
       }
     }
-    // annotatedRefLine += '</span>';
-    // annotatedEnteredLine += '</span>';
-    this.annotatedRefLine = annotatedRefLine.trimEnd();
-    this.annotatedTypedLine = annotatedEnteredLine.trimEnd();
+    if (errorsFound) {
+      this.annotatedRefLine = annotatedRefLine.trimEnd();
+      this.annotatedTypedLine = annotatedEnteredLine.trimEnd();
+    }
   }
 
   private static diffWord(enteredWord: string, refWord: string): {

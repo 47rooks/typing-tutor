@@ -64,3 +64,4 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
    + there is no final stop. Instead the user can keep typing and hitting return pushing the text
    further up the screen. Harmless but not very good.
    + 'You are done' is not very explanatory as to next moves.
+   + Currently annotated reference and annotated entered lines are built up regardless of whether there are errors. It would be an optimization to only do that if there was an error.
