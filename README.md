@@ -43,6 +43,13 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
      + Delete the old files that you are replacing.
        + In theory you can leave them in place and replace index.html last and the old version will work until the new one is in place.
 
+### Ideas for Improvements
+
+   + Add timer to calculate word rate
+   + Add error counter so that an accuracy estimate can be displayed. Error counting must work whether errors are displayed or not.
+   + Add option to save reference text to local storage for reuse later
+   + Add option for to reset and practice the same text again
+
 ### Known Bugs/ToDos
 
    + Changing size of font does not work during the actual practice typing session. We should 
