@@ -96,6 +96,15 @@ export default class TypingPractice extends Vue {
 
   annotatedTypedLine = '';
 
+  // Timer support for typing rate
+  private wordsTyped = 0;
+
+  private lastTimeStartedTyping = 0;
+
+  private totalTypingTime = 0;
+
+  private currentlyTyping = false;
+
   // List of fonts to be presented by the font-picker
   FONT_LIST = [
     'Accordance',
@@ -235,6 +244,14 @@ export default class TypingPractice extends Vue {
   }
 
   /**
+   * Return the typing rate in words per minute
+   */
+  get typingRate(): string {
+    const rate = this.totalTypingTime > 0 ? this.wordsTyped / (this.totalTypingTime / 60000) : 0.0;
+    return rate.toFixed(1);
+  }
+
+  /**
    * Handle the font selected by the user. The member variable feeds the various
    * computed properties which style their fonts.
    * @param chosenFont the font name the user chose
@@ -323,6 +340,11 @@ export default class TypingPractice extends Vue {
     // Reset corrections pane
     this.annotatedTypedLine = '';
     this.annotatedRefLine = '';
+    // Reset timing
+    this.currentlyTyping = false;
+    this.lastTimeStartedTyping = 0;
+    this.totalTypingTime = 0;
+    this.wordsTyped = 0;
   }
 
   /**
@@ -537,8 +559,15 @@ export default class TypingPractice extends Vue {
    */
   enterHdlr(event: KeyboardEvent): void {
     if (event && event.keyCode === 13) {
+      // Halt the timer and add the time to the total
+      this.totalTypingTime += Date.now() - this.lastTimeStartedTyping;
+      this.currentlyTyping = false;
+
       // Get entered text
       const inputElt = document.getElementById('practice-line') as HTMLInputElement;
+
+      // Update the number of words typed
+      this.wordsTyped += inputElt.value.split(' ').length;
 
       // Validate entered line against the practice text line
       if (this.showCorrections) {
@@ -596,6 +625,9 @@ export default class TypingPractice extends Vue {
           this.nextYetToBeTypedPracticeLine += 1;
         }
       }
+    } else if (!this.currentlyTyping) {
+      this.lastTimeStartedTyping = Date.now();
+      this.currentlyTyping = true;
     }
   }
 

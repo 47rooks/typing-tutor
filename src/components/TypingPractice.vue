@@ -42,6 +42,9 @@
             Clear
           </button>
         </li>
+        <li>
+          <span>Words/minute {{typingRate}}</span>
+        </li>
       </ul>
       <ul :style="correctionsKeyStyle">
         <li><span style="color:orange">Orange text, added</span></li>
