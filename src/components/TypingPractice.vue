@@ -28,6 +28,7 @@
             type="button"
             @click="practiceHdlr"
             :disabled="practiceButtonDisabled"
+            title="Begin practicing with this text"
           >
             Practice
           </button>
@@ -38,6 +39,7 @@
             type="button"
             @click="clearHdlr"
             :disabled="clearButtonDisabled"
+            title="Clear current state and reset to initial state"
           >
             Clear
           </button>
@@ -48,6 +50,7 @@
             type="Restart"
             @click="restartHdlr"
             :disabled="restartButtonDisabled"
+            title="Restart the same practice text"
           >
             Restart
           </button>
