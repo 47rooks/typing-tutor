@@ -1,18 +1,16 @@
 import { expect } from 'chai';
 import { shallowMount, Wrapper } from '@vue/test-utils';
-import TypingPracticeTemplate from '@/components/TypingPractice.vue';
 import TypingPractice from '@/components/TypingPractice';
 import Vue from 'vue';
 
 describe('TypingPractice showTypingErrors', () => {
   let wrapper: Wrapper<TypingPractice>;
-
   beforeEach(() => {
     const elem = document.createElement('div');
     if (document.body) {
       document.body.appendChild(elem);
     }
-    wrapper = shallowMount(TypingPracticeTemplate, {
+    wrapper = shallowMount(TypingPractice, {
       attachTo: elem,
     });
   });
