@@ -45,10 +45,8 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ### Ideas for Improvements
 
-   + Add timer to calculate word rate
    + Add error counter so that an accuracy estimate can be displayed. Error counting must work whether errors are displayed or not.
    + Add option to save reference text to local storage for reuse later
-   + Add option for to reset and practice the same text again
 
 ### Known Bugs/ToDos
 
