@@ -96,6 +96,11 @@ export default class TypingPractice extends Vue {
 
   annotatedTypedLine = '';
 
+  // Restart button support
+  disableRestartButton = false;
+
+  notStarted = true;
+
   // Timer support for typing rate
   private wordsTyped = 0;
 
@@ -243,6 +248,10 @@ export default class TypingPractice extends Vue {
     return this.reftext === '';
   }
 
+  get restartButtonDisabled(): boolean {
+    return this.reftext === '' || this.notStarted;
+  }
+
   /**
    * Return the typing rate in words per minute
    */
@@ -293,6 +302,9 @@ export default class TypingPractice extends Vue {
       }
     });
     this.nextYetToBeTypedPracticeLine = linesToAdd;
+
+    // Enable the restart button
+    this.notStarted = false;
 
     // Set focus in the text input box with a delay so it renders before focus is made.
     const pBox = document.getElementById('practice-line') as HTMLInputElement;
@@ -345,6 +357,14 @@ export default class TypingPractice extends Vue {
     this.lastTimeStartedTyping = 0;
     this.totalTypingTime = 0;
     this.wordsTyped = 0;
+    // Clear the restart button
+    this.notStarted = true;
+  }
+
+  restartHdlr(): void {
+    const txt = this.reftext;
+    this.clearHdlr();
+    this.reftext = txt;
   }
 
   /**

@@ -43,6 +43,16 @@
           </button>
         </li>
         <li>
+          <button
+            id="restart-button"
+            type="Restart"
+            @click="restartHdlr"
+            :disabled="restartButtonDisabled"
+          >
+            Restart
+          </button>
+        </li>
+        <li>
           <span>Words/minute {{typingRate}}</span>
         </li>
       </ul>
