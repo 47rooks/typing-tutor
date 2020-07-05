@@ -1,16 +1,17 @@
 import { expect } from 'chai';
 import { shallowMount, Wrapper } from '@vue/test-utils';
-import TypingPractice from '@/components/TypingPractice';
+import TypingPracticeVue from '@/components/TypingPractice.vue';
 import Vue from 'vue';
+import TypingPractice from '../../src/components/TypingPractice';
 
-describe('TypingPractice showTypingErrors', () => {
-  let wrapper: Wrapper<TypingPractice>;
+describe('TypingPractice showTypingErrors unit tests', () => {
+  let wrapper: Wrapper<TypingPracticeVue>;
   beforeEach(() => {
     const elem = document.createElement('div');
     if (document.body) {
       document.body.appendChild(elem);
     }
-    wrapper = shallowMount(TypingPractice, {
+    wrapper = shallowMount(TypingPracticeVue, {
       attachTo: elem,
     });
   });
@@ -27,7 +28,7 @@ describe('TypingPractice showTypingErrors', () => {
     const practiceB = wrapper.find('#practice-button');
     practiceB.trigger('click');
     await Vue.nextTick();
-    const tp = wrapper.vm;
+    const tp = wrapper.vm as TypingPractice;
     tp.showTypingErrors(entered);
 
     // Validate the annotated results
@@ -59,6 +60,41 @@ describe('TypingPractice showTypingErrors', () => {
   it('detects one grapheme duplicated in a word', () => testShowErrors(
     'Τῶν',
     'Τῶνν',
+    'Τῶν',
+    'Τῶν<span style="color:orange">ν</span>',
+  ));
+
+  // FIXME Should this be highlighted distinctly somehow ?
+  it('detects two transposed graphemes in a word', () => testShowErrors(
+    'Ἰσραὴλ',
+    'Ἰσαρὴλ',
+    'Τῶν',
+    'Τῶν<span style="color:orange">ν</span>',
+  ));
+
+  // FIXME Currently this misses the addition thinking that there is an omission and then
+  // additions ? It also shows that the punctuation is included in the assessement which is
+  // probably incorrect.
+  it('detects an inserted extra grapheme in a word', () => testShowErrors(
+    'βαπτίζων.',
+    'βαπτίζνων.',
+    'Τῶν',
+    'Τῶν<span style="color:orange">ν</span>',
+  ));
+
+  // FIXME This is the trailing apostrophe issue from paste from Accordance from the end of
+  // John 1:32. Compare with paste from another source and check encoding.
+  it('detects trailing apostrophe from Accordance paste', () => testShowErrors(
+    'ἐπ̓ ',
+    'ἐπ᾿ ',
+    'Τῶν',
+    'Τῶν<span style="color:orange">ν</span>',
+  ));
+
+  // FIXME The full stop when omitted is not noticed by the annotator
+  it('detects omitted fullstop', () => testShowErrors(
+    'ἐγεννήθησαν.',
+    'ἐγεννήθησαν',
     'Τῶν',
     'Τῶν<span style="color:orange">ν</span>',
   ));
