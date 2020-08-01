@@ -1,6 +1,7 @@
 import { Component, Vue } from 'vue-property-decorator';
 import GraphemeSplitter from 'grapheme-splitter';
 import FontPicker from './FontPicker.vue';
+import InputPopup from './InputPopup.vue';
 
 const COLOR_ADDED = 'color:orange';
 const COLOR_OMITTED = 'color:blue';
@@ -12,6 +13,7 @@ const COLOR_DIFFERENT = 'color:red';
 @Component({
   components: {
     'font-picker': FontPicker,
+    'input-popup': InputPopup,
   },
 })
 export default class TypingPractice extends Vue {
@@ -101,6 +103,17 @@ export default class TypingPractice extends Vue {
 
   notStarted = true;
 
+  // Library support
+  libraryTexts: string[];
+
+  selectedText = 'none';
+
+  showSaveNameDialog = false;
+
+  validationErrorText = ''; // Report validation error to dialog to reprompt for name
+
+  disableSaveButton = false;
+
   // Timer support for typing rate
   private wordsTyped = 0;
 
@@ -124,6 +137,14 @@ export default class TypingPractice extends Vue {
 
   // The selected font in which to render all text
   private chosenFont = this.PREFERRED_FONT;
+
+  constructor() {
+    super();
+    console.log('Constructor called');
+    this.libraryTexts = [];
+    // Launch the library text load
+    this.loadLibraryTexts();
+  }
 
   /**
    * ---------------------------------------------------
@@ -306,6 +327,9 @@ export default class TypingPractice extends Vue {
     // Enable the restart button
     this.notStarted = false;
 
+    // disable Save button
+    this.disableSaveButton = true;
+
     // Set focus in the text input box with a delay so it renders before focus is made.
     const pBox = document.getElementById('practice-line') as HTMLInputElement;
     setTimeout(() => {
@@ -359,12 +383,193 @@ export default class TypingPractice extends Vue {
     this.wordsTyped = 0;
     // Clear the restart button
     this.notStarted = true;
+    // Reset library selection
+    this.selectedText = 'none';
+    this.disableSaveButton = false;
   }
 
   restartHdlr(): void {
     const txt = this.reftext;
     this.clearHdlr();
     this.reftext = txt;
+  }
+
+  /**
+   * Disable the save button when:
+   *   there is no text in the reference text area,
+   *   when the text in textarea is an unmodified library item,
+   *   when in practice mode
+   */
+  get saveButtonDisabled(): boolean {
+    return this.reftext === '' || this.disablePracticeButton;
+  }
+
+  /**
+   * Disabled when there is no library, or once a text is in use
+   */
+  get librarySelectListDisabled(): boolean {
+    return this.libraryTexts.length === 0;
+  }
+
+  /*
+   * Perform the requested library operation
+   */
+  private libraryOperation(operation: (db: IDBDatabase) => void) {
+    console.log(`FIXME Going to save text in library ${this.saveButtonDisabled}`);
+    // indexedDB.deleteDatabase('typingdb');
+    const openRequest = indexedDB.open('typingdb', 1);
+
+    openRequest.onupgradeneeded = (event) => {
+      // FIXME Handle upgrade case
+      console.log('initialization required');
+      const db = openRequest.result;
+      switch (event.oldVersion) {
+        case 0:
+          // Create DB for first time
+          // Create 'library' object store
+          db.createObjectStore('library', { keyPath: 'id' });
+          break;
+        case 1:
+          // At v1 - for now do nothing
+          break;
+        default:
+        // do nothing
+      }
+    };
+
+    openRequest.onsuccess = () => {
+      const db = openRequest.result;
+
+      db.onversionchange = () => {
+        db.close();
+        alert('Library database is out of date. Please reload the page');
+      };
+
+      operation(db);
+    };
+
+    openRequest.onerror = (event) => {
+      console.log(`open failed with ${event}`);
+    };
+
+    openRequest.onblocked = () => {
+      // FIXME handle blocked case
+    };
+  }
+
+  /**
+   * Get the list of saved library texts
+   */
+  private loadLibraryTexts(): void {
+    this.libraryOperation((db: IDBDatabase) => {
+      // Read the list of texts
+      const txn = db.transaction('library');
+      const library = txn.objectStore('library');
+      const getReq = library.getAll();
+      getReq.onsuccess = () => {
+        this.libraryTexts = [];
+        getReq.result.forEach((t) => {
+          this.libraryTexts.push(t.id);
+        });
+        db.close();
+        console.log(`Current texts=${this.libraryTexts}`);
+      };
+
+      getReq.onerror = () => {
+        alert(`Failed to read texts from library. Will continue without it. Error = ${getReq.error}`);
+        db.close();
+      };
+    });
+  }
+
+  get libraryTextsList(): string[] {
+    return this.libraryTexts;
+  }
+
+  /**
+   * Load a specific library text as the practice text
+   */
+  private loadNamedText(textId: string): void {
+    this.libraryOperation((db: IDBDatabase) => {
+      // Read the list of texts
+      const txn = db.transaction('library');
+      const library = txn.objectStore('library');
+      const getReq = library.get(`${textId}`);
+      getReq.onsuccess = () => {
+        console.log(`loaded ${textId} with content ${getReq.result.text}`);
+        this.reftext = getReq.result.text;
+        db.close();
+      };
+
+      getReq.onerror = () => {
+        alert(`Failed to read text ${textId} from library. Error = ${getReq.error}`);
+        db.close();
+      };
+    });
+  }
+
+  /**
+   * Handle the text selection - retrieve the selected text.
+   */
+  handleLibrarySelection(event: Event): void {
+    const textId = (event.target as HTMLSelectElement).value;
+    console.log(`User selected event text = ${textId}`);
+    // Load the selected text
+    this.loadNamedText(textId);
+  }
+
+  private saveTextToLibrary(name: string) {
+    this.libraryOperation((db: IDBDatabase) => {
+      // Read the list of texts
+      const txn = db.transaction('library', 'readwrite');
+      const library = txn.objectStore('library');
+      try {
+        const getReq = library.put({ id: `${name}`, text: `${this.reftext}` });
+        getReq.onsuccess = () => {
+          db.close();
+        };
+
+        getReq.onerror = () => {
+          alert(`Failed to save text to library. Will continue without it. Error = ${getReq.error}`);
+          db.close();
+        };
+      } catch (e) {
+        alert(`Library operation failed: ${e}`);
+      }
+    });
+  }
+
+  /**
+   * Receive and handle the name to save the current text.
+   */
+  handleSaveName(saveName: string): void {
+    console.log(`handleSaveName: ${saveName}`);
+    if (this.libraryTextsList.includes(saveName)) {
+      this.validationErrorText = `Name ${saveName} already in use. Enter new name or confirm overwrite ?`;
+      return;
+    }
+    this.showSaveNameDialog = false;
+    this.saveTextToLibrary(saveName);
+    this.loadLibraryTexts();
+  }
+
+  /**
+   * Vue computed property to determine whether to display the popup to prompt for the
+   * name to save the text under or not.
+   */
+  get promptForSaveName(): boolean {
+    return this.showSaveNameDialog;
+  }
+
+  /**
+   * Handle the Save button click
+   */
+  saveHdlr(): void {
+    this.showSaveNameDialog = true;
+  }
+
+  handleCancel(): void {
+    this.showSaveNameDialog = false;
   }
 
   /**
@@ -490,6 +695,8 @@ export default class TypingPractice extends Vue {
     const gs = new GraphemeSplitter();
     const refWordNFDGr: string[] = gs.splitGraphemes(refWord);
     const enteredWordNFDGr: string[] = gs.splitGraphemes(enteredWord);
+    console.log(`ref: ${refWordNFDGr}`);
+    console.log(`ent: ${enteredWordNFDGr}`);
     // let annotatedEnteredWord = '<span>';
     // let annotatedRefWord = '<span>';
     let annotatedEnteredWord = '';

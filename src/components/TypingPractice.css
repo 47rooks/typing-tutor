@@ -12,10 +12,12 @@ li {
 a {
   color: #42b983;
 }
-div#control-pane {
+div#control-pane,
+div#library-pane {
   margin-bottom: 5px;
 }
-div#control-pane > ul > li > span {
+div#control-pane > ul > li > span,
+div#library-pane > ul > li > span {
   margin: 0 5px;
 }
 div#typing-pane {
@@ -65,4 +67,23 @@ div#corrections-pane {
 div#corrections-pane td {
   text-align: justify;
   padding: 0px 10px 0px 10px;
+}
+div#text-name-popup-pane {
+  z-index: 1500;
+  width: 20%;
+  height: 10%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -5%;
+  margin-left: -10%;
+  background-color: beige;
+  border-radius: 10px;
+  padding: 10px;
+}
+div#text-name-popup-pane span,
+div#text-name-popup-pane input,
+div#text-name-popup-pane button {
+  vertical-align: middle;
+  margin: 5px 5px;
 }

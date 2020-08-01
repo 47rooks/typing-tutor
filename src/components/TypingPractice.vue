@@ -1,5 +1,5 @@
 <template>
-  <div class="typing-practice">
+  <div id="typing-practice">
     <div id="control-pane">
       <ul>
         <li>
@@ -65,6 +65,37 @@
         <li><span style="color:red">Red text, incorrect</span></li>
       </ul>
     </div>
+    <div id="library-pane">
+      <ul>
+        <li>
+          <span>Library</span>
+          <select @change="handleLibrarySelection"
+           v-model="selectedText"
+           :disabled="librarySelectListDisabled">
+            <option value="none" disabled hidden>
+              Select a text from the library or paste in new text
+            </option>
+            <option
+              v-for="textId in libraryTextsList"
+              v-bind:key="textId"
+              v-bind:value="textId"
+              >{{ textId }}</option
+            >
+          </select>
+        </li>
+        <li>
+          <button
+            id="save-button"
+            type="Save"
+            @click="saveHdlr"
+            :disabled="saveButtonDisabled"
+            title="Save the current text to the library"
+            >
+            Save
+          </button>
+        </li>
+      </ul>
+    </div>
     <div id="reference-pane" v-bind:style="referencePaneStyle">
       <textarea
         id="reference-ta"
@@ -109,6 +140,17 @@
         </div>
       </div>
     </div>
+    <input-popup title="Save current text to library"
+                 prompt="Enter a name for the text"
+                 save-help-text="Save the current text to the library"
+                 save-button-name="Save"
+                 v-on:input-name="handleSaveName"
+                 :validation-error="validationErrorText"
+                 confirm-help-text="Confirm use of name"
+                 confirm-button-name="Confirm"
+                 v-if="promptForSaveName"
+                 v-on:input-cancelled="handleCancel"
+    ></input-popup>
   </div>
 </template>
 
