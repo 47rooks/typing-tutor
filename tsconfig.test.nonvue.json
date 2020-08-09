@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "esnext",
+    "strict": true,
+    "importHelpers": true,
+    "moduleResolution": "classic",
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "types": ["webpack-env", "mocha", "chai"],
+    "paths": {
+      "chai": ["node_modules/chai"]
+    },
+    "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
+    "outDir": "nonvue-build"
+  },
+  "include": ["tests/mocha/**/*.ts", "src/database/**/*.ts"],
+  "exclude": ["node_modules"]
+}

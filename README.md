@@ -31,6 +31,43 @@ Then connect to the designated port in VSCode and start the tests with run butto
 npm run lint
 ```
 
+### Coding Style
+
+#### Imports with .js extension
+The primary thing is to note that all Typescript imports are done with a .js extension for the file.
+This is done because tsc still does not provide a way to add the ts extension required by 
+browser loading. Without it tests fail in the non-Vue testing.
+
+This is a very bad workaround to this problem. Once I figure out how to use a bundler to do this
+I will incorporate bundling into the non-Vue test transpile. Strictly this is only required for
+modules which are imported by the non-Vue browser based tests.
+
+### Testing
+
+Tests are of two types currently. Those run using node with Vue's test support and those run in
+a browser using Mocha to test browser based features like Indexeddb without Vue deps.
+
+To run the vue tests use ```npm run test:unit```
+
+For the non-Vue tests that use the browser to test IndexedDB related functions there is a 
+separate transpile and then the tests are loaded and run in a browser.
+
+To build
+
+```
+npm run build:nonvue:tests
+```
+
+The run the http-server serving the nonvue-build directory
+```
+http-server nonvue-build
+```
+
+Then use a browser to load the HTML test driver file
+```
+localhost:8080/TypingDbSpec.html
+```
+
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
