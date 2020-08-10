@@ -1,5 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: './tests/mocha/database/TypingDb.spec.ts',
@@ -21,6 +23,12 @@ module.exports = {
     filename: 'testbundle.js',
     path: path.resolve(__dirname, 'nonvue-build'),
   },
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: 'Mocha Non-Vue Tests',
+      template: 'tests/mocha/database/TypingDbSpecTemplate.html',
+    }),
+  ],
   resolve: {
     extensions: ['.ts', '.js'],
   },
