@@ -1,57 +1,75 @@
-import Library from './Library';
+import Library from './Library.js';
 
 export default class TypingDb {
   dbName: string;
+
   version: number;
+
   db!: IDBDatabase;
+
   constructor(dbName: string, version: number) {
     this.dbName = dbName;
     this.version = version;
   }
 
-  public open(): void {
-    const openRequest = indexedDB.open(this.dbName, 1);
+  public open(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const openRequest = indexedDB.open(this.dbName, 1);
 
-    openRequest.onupgradeneeded = (event) => {
-      // FIXME Handle upgrade case
-      console.log('initialization required');
-      const db = openRequest.result;
-      switch (event.oldVersion) {
-        case 0:
-          // Create DB for first time
-          // Create 'library' object store
-          db.createObjectStore('library', { keyPath: 'id' });
-          break;
-        case 1:
-          // At v1 - for now do nothing
-          break;
-        default:
-        // do nothing
-      }
-    };
-
-    openRequest.onsuccess = () => {
-      const db = openRequest.result;
-
-      db.onversionchange = () => {
-        db.close();
-        alert('Library database is out of date. Please reload the page');
+      openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+        // FIXME Handle upgrade case
+        console.log('initialization required');
+        const db = openRequest.result;
+        switch (event.oldVersion) {
+          case 0:
+            // Create DB for first time
+            // Create 'library' object store
+            db.createObjectStore('library', { keyPath: 'id' });
+            break;
+          case 1:
+            // At v1 - for now do nothing
+            break;
+          default:
+          // do nothing
+        }
       };
 
-      this.db = db;
-    };
+      openRequest.onsuccess = () => {
+        const db = openRequest.result;
 
-    openRequest.onerror = (event) => {
-      console.log(`open failed with ${event}`);
-    };
+        db.onversionchange = () => {
+          db.close();
+          alert('Library database is out of date. Please reload the page');
+          reject();
+        };
 
-    openRequest.onblocked = () => {
-      // FIXME handle blocked case
-    };
+        this.db = db;
+        resolve(true);
+      };
+
+      openRequest.onerror = (event: Event) => {
+        // console.log(`open failed with ${event}`);
+        reject(event);
+      };
+
+      openRequest.onblocked = () => {
+        // FIXME handle blocked case
+      };
+    });
   }
 
-  public close() {
-    this.db.close();
+  public close(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      this.db.onclose = function (ev: Event) {
+        console.log(ev);
+        resolve(true);
+      };
+      try {
+        this.db.close();
+      } catch (e) {
+        reject(e);
+      }
+    });
   }
 
   public getLibrary() {

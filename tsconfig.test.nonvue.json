@@ -4,7 +4,7 @@
     "module": "esnext",
     "strict": true,
     "importHelpers": true,
-    "moduleResolution": "classic",
+    "moduleResolution": "node",
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -12,7 +12,8 @@
     "baseUrl": ".",
     "types": ["webpack-env", "mocha", "chai"],
     "paths": {
-      "chai": ["node_modules/chai"]
+      "chai": ["node_modules/chai"],
+      "tslib": ["node_modules/tslib"]
     },
     "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
     "outDir": "nonvue-build"

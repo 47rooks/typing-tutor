@@ -52,6 +52,13 @@ To run the vue tests use ```npm run test:unit```
 For the non-Vue tests that use the browser to test IndexedDB related functions there is a 
 separate transpile and then the tests are loaded and run in a browser.
 
+Currently building for test will have problems with loading async/await support. At present I
+use tslib but this causes issues with loading the test page in the browser. I need to deploy
+the node_modules/tslib module to the nonvue-build directory. In addition, I need to use the es6
+variant of tslib rather than the vanilla one. That requires a path rewrite in the transpiled
+test file. FIXME This all begs for a bundler. Investigating webpack now. I will rewrite this
+once I have a better plot here, be it webpack or something else.
+
 To build
 
 ```
@@ -100,3 +107,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
    further up the screen. Harmless but not very good.
    + 'You are done' is not very explanatory as to next moves.
    + Currently annotated reference and annotated entered lines are built up regardless of whether there are errors. It would be an optimization to only do that if there was an error.
+   + Replace the '.js' extension in imports with use of a bundler in the tsconfig.test.nonvue.json
+   + add webpack-dev-server to allow for the loading of the test file changes as they appear. This
+   will likely also require or benefit from webpack -watch.
