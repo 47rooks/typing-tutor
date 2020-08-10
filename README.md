@@ -104,5 +104,3 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
    further up the screen. Harmless but not very good.
    + 'You are done' is not very explanatory as to next moves.
    + Currently annotated reference and annotated entered lines are built up regardless of whether there are errors. It would be an optimization to only do that if there was an error.
-   + add webpack-dev-server to allow for the loading of the test file changes as they appear. This
-   will likely also require or benefit from webpack -watch.

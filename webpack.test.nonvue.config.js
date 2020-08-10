@@ -5,6 +5,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: './tests/mocha/database/TypingDb.spec.ts',
+  devServer: {
+    contentBase: './nonvue-build',
+    watchContentBase: true,
+  },
   devtool: 'inline-source-map',
   mode: 'development',
   module: {

@@ -6,6 +6,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "build:nonvue:tests": "webpack --config webpack.test.nonvue.config.js --display-modules",
+    "build:nonvue:tests:watch": "webpack --config webpack.test.nonvue.config.js --display-modules --watch",
+    "nonvue:test:server": "webpack-dev-server --config webpack.test.nonvue.config.js --open",
     "test:unit": "vue-cli-service test:unit",
     "test:db:unit": "mocha -r ts-node/esm.mjs --experimental-specifier-resolution=node --experimental-modules tests/unit/database/TypingDb.spec.ts",
     "lint": "vue-cli-service lint"
@@ -40,6 +42,7 @@
     "typescript": "~3.8.3",
     "vue-template-compiler": "^2.6.11",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0"
   }
 }
