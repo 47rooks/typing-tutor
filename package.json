@@ -6,6 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "build:nonvue:tests": "tsc -p tsconfig.test.nonvue.json && cp ./tests/mocha/database/TypingDbSpec.html ./nonvue-build",
+    "build:nonvue:tests:wp": "webpack --config webpack.test.nonvue.config.js --display-modules",
     "test:unit": "vue-cli-service test:unit",
     "test:db:unit": "mocha -r ts-node/esm.mjs --experimental-specifier-resolution=node --experimental-modules tests/unit/database/TypingDb.spec.ts",
     "lint": "vue-cli-service lint"
@@ -34,8 +35,11 @@
     "eslint-plugin-vue": "^6.2.2",
     "http-server": "^0.12.3",
     "mocha": "^8.1.0",
+    "ts-loader": "^8.0.2",
     "tslib": "^2.0.1",
     "typescript": "~3.8.3",
-    "vue-template-compiler": "^2.6.11"
+    "vue-template-compiler": "^2.6.11",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
   }
 }

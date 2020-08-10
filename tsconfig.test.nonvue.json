@@ -15,8 +15,7 @@
       "chai": ["node_modules/chai"],
       "tslib": ["node_modules/tslib"]
     },
-    "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
-    "outDir": "nonvue-build"
+    "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
   },
   "include": ["tests/mocha/**/*.ts", "src/database/**/*.ts"],
   "exclude": ["node_modules"]

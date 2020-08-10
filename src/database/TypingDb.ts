@@ -1,4 +1,4 @@
-import Library from './Library.js';
+import Library from './Library';
 
 export default class TypingDb {
   dbName: string;

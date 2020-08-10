@@ -1,4 +1,4 @@
-import TypingDb from '../../../src/database/TypingDb.js';
+import TypingDb from '../../../src/database/TypingDb';
 import { Suite } from 'mocha';
 
 const expect = chai.expect;
