@@ -5,25 +5,44 @@ export default class Library {
     this.db = db;
   }
 
-  // public loadLibraryTexts(): Promise<string[]> {
-  //   this.libraryOperation((db: IDBDatabase) => {
-  //     // Read the list of texts
-  //     const txn = db.transaction('library');
-  //     const library = txn.objectStore('library');
-  //     const getReq = library.getAll();
-  //     getReq.onsuccess = () => {
-  //       this.libraryTexts = [];
-  //       getReq.result.forEach((t) => {
-  //         this.libraryTexts.push(t.id);
-  //       });
-  //       db.close();
-  //       console.log(`Current texts=${this.libraryTexts}`);
-  //     };
+  public loadLibraryTextNames(): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+      // Read the list of texts
+      const txn = this.db.transaction('library');
+      const library = txn.objectStore('library');
+      const getReq = library.getAll();
+      getReq.onsuccess = () => {
+        const libraryTexts: string[] = [];
+        getReq.result.forEach((t) => {
+          libraryTexts.push(t.id);
+        });
+        console.log(`Current texts=${libraryTexts}`);
+        resolve(libraryTexts);
+      };
 
-  //     getReq.onerror = () => {
-  // alert(`Failed to read texts from library. Will continue without it. Error = ${getReq.error}`);
-  //       db.close();
-  //     };
-  //   });
-  // }
+      getReq.onerror = () => {
+        reject(`Failed to read texts from library. Will continue without it. Error = ${getReq.error}`);
+      };
+    });
+  }
+
+  public addEntry(name: string, text: string): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+      // Read the list of texts
+      const txn = this.db.transaction('library', 'readwrite');
+      const library = txn.objectStore('library');
+      try {
+        const getReq = library.put({ id: `${name}`, text: `${text}` });
+        txn.oncomplete = () => {
+          resolve();
+        };
+
+        txn.onerror = () => {
+          reject(`Failed to save text to library. Will continue without it. Error = ${getReq.error}`);
+        };
+      } catch (e) {
+        reject(`Library operation failed: ${e}`);
+      };
+    });
+  }
 }

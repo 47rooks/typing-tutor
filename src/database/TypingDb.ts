@@ -39,7 +39,7 @@ export default class TypingDb {
 
         db.onversionchange = () => {
           db.close();
-          alert('Library database is out of date. Please reload the page');
+          // alert('Library database is out of date. Please reload the page');
           reject();
         };
 
@@ -60,12 +60,9 @@ export default class TypingDb {
 
   public close(): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.db.onclose = function (ev: Event) {
-        console.log(ev);
-        resolve(true);
-      };
       try {
         this.db.close();
+        resolve();
       } catch (e) {
         reject(e);
       }
