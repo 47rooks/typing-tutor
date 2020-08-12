@@ -1,3 +1,9 @@
+
+export type LibraryText = {
+  id: string;
+  text: string;
+}
+
 export default class Library {
   db: IDBDatabase;
 
@@ -26,7 +32,7 @@ export default class Library {
     });
   }
 
-  public addEntry(name: string, text: string): Promise<boolean> {
+  public addUpdateEntry(name: string, text: string): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
       // Read the list of texts
       const txn = this.db.transaction('library', 'readwrite');
@@ -42,6 +48,22 @@ export default class Library {
         };
       } catch (e) {
         reject(`Library operation failed: ${e}`);
+      };
+    });
+  }
+
+  public loadLibraryTextById(id: string): Promise<LibraryText> {
+    return new Promise<LibraryText>((resolve, reject) => {
+      // Read the list of texts
+      const txn = this.db.transaction('library');
+      const library = txn.objectStore('library');
+      const getReq = library.get(`${id}`);
+      getReq.onsuccess = () => {
+        resolve(getReq.result);
+      };
+
+      getReq.onerror = () => {
+        reject(`Failed to read text ${id} from library. Error = ${getReq.error}`);
       };
     });
   }

@@ -94,7 +94,7 @@ describe('database.TypingDb unit tests', function (this: Suite) {
     await tDb.open().
       then(() => {
         const lib = tDb?.getLibrary();
-        lib?.addEntry('ent1', 'This is the first text');
+        lib?.addUpdateEntry('ent1', 'This is the first text');
         console.log('added entry');
       }).
       then(() => tDb?.getLibrary().loadLibraryTextNames()).
@@ -110,12 +110,12 @@ describe('database.TypingDb unit tests', function (this: Suite) {
     await tDb.open().
       then(() => {
         const lib = tDb?.getLibrary();
-        lib?.addEntry('ent1', 'This is the first text');
+        lib?.addUpdateEntry('ent1', 'This is the first text');
         console.log('added entry');
       }).
       then(() => {
         const lib = tDb?.getLibrary();
-        lib?.addEntry('ent2', 'This is the second text');
+        lib?.addUpdateEntry('ent2', 'This is the second text');
         console.log('added entry');
       }).
       then(() => tDb?.getLibrary().loadLibraryTextNames()).
@@ -126,14 +126,39 @@ describe('database.TypingDb unit tests', function (this: Suite) {
       });
   });
 
-  it('updates an existing entry', () => {
+  it('it loads a library text in full', async () => {
+    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+    await tDb.open().
+      then(() => {
+        const lib = tDb?.getLibrary();
+        lib?.addUpdateEntry('ent1', 'This is the first text');
+        console.log('added entry');
+      }).
+      then(() => tDb?.getLibrary().loadLibraryTextById('ent1')).
+      then((text) => {
+        expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text' });
+      });
+  });
 
+  it('updates an existing entry', async () => {
+    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+    await tDb.open().
+      then(() => {
+        const lib = tDb?.getLibrary();
+        lib?.addUpdateEntry('ent1', 'This is the first text');
+        console.log('added entry');
+      }).
+      then(() => {
+        const lib = tDb?.getLibrary();
+        lib?.addUpdateEntry('ent1', 'This is the first text rewritten');
+        console.log('added entry');
+      }).
+      then(() => tDb?.getLibrary().loadLibraryTextById('ent1')).
+      then((text) => {
+        expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text rewritten' });
+      });
   });
 
   it('deletes a library entry', () => {
-  });
-
-  it('it loads a library text in full', () => {
-
   });
 });
