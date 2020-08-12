@@ -53,20 +53,23 @@ describe('database.TypingDb unit tests', function (this: Suite) {
     expect(db.version).to.equal(1);
   });
 
-  it('tests open - verifies the db creation', async () => {
-    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    console.log('in the test open test');
-    await tDb.open().then(() => {
-      console.log(`Got database with this ${tDb?.db.name}`);
-      let storeNames: string[] = [];
-      if (tDb?.db?.objectStoreNames) {
-        storeNames = Array.from(tDb.db.objectStoreNames);
-      }
-      console.log(`Contains these stores: ${storeNames}`);
-      expect(storeNames.length).to.equal(1);
-      expect(storeNames).to.include.all.members(['library']);
-    });
-  });
+  // FIXME This may have to go. Is there an idea of the stores on the TypingDb object ?
+  // It's not the same as the objectStores in the IndexedDB.
+  // And if there is what use is it to the callers.
+  // it('tests open - verifies the db creation', async () => {
+  //   let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+  //   console.log('in the test open test');
+  //   await tDb.open().then(() => {
+  //     console.log(`Got database with this ${tDb?.db.name}`);
+  //     let storeNames: string[] = [];
+  //     if (tDb?.db?.objectStoreNames) {
+  //       storeNames = Array.from(tDb.db.objectStoreNames);
+  //     }
+  //     console.log(`Contains these stores: ${storeNames}`);
+  //     expect(storeNames.length).to.equal(1);
+  //     expect(storeNames).to.include.all.members(['library']);
+  //   });
+  // });
 
   it('verifies open() fail exception', () => {
 
@@ -74,91 +77,88 @@ describe('database.TypingDb unit tests', function (this: Suite) {
 
   it('closes the db', async () => {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.open().then(async () => {
-      await tDb?.close().then(() => {
-        expect(true).to.be.true;
-      });
+    await tDb.close().then(() => {
+      expect(true).to.be.true;
+    });
+  });
+
+  it('closes the db and then get Library', async () => {
+    let tDb: TypingDb = new TypingDb(TEST_DB1_NAME, 1);
+    await tDb.close().then((db) => {
+      db.getLibrary().
+        then((lib) => {
+          expect(typeof lib).to.be('Library');
+        })
     });
   });
 
   it('gets the Library store', async () => {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.open().then(() => {
-      const lib = tDb?.getLibrary();
-      expect(tDb?.db).to.equal(lib?.db);
-    });
+    await tDb.getLibrary().
+      then((lib) => {
+        expect(tDb?.db).to.equal(lib?.db);
+      });
   });
 
   it('stores an entry in the library', async () => {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.open().
-      then(() => {
-        const lib = tDb?.getLibrary();
-        lib?.addUpdateEntry('ent1', 'This is the first text');
-        console.log('added entry');
-      }).
-      then(() => tDb?.getLibrary().loadLibraryTextNames()).
-      then((texts) => {
-        console.log('Got this:');
-        console.log(texts);
-        expect(texts).to.deep.equal(['ent1']);
+    await tDb.getLibrary().
+      then((lib) => {
+        lib.addUpdateEntry('ent1', 'This is the first text').
+          then((lib) => lib.loadLibraryTextNames()).
+          then((texts) => {
+            console.log('Got this:');
+            console.log(texts);
+            expect(texts).to.deep.equal(['ent1']);
+          });
       });
   });
 
   it('stores two entries in the library', async () => {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.open().
-      then(() => {
-        const lib = tDb?.getLibrary();
-        lib?.addUpdateEntry('ent1', 'This is the first text');
-        console.log('added entry');
-      }).
-      then(() => {
-        const lib = tDb?.getLibrary();
-        lib?.addUpdateEntry('ent2', 'This is the second text');
-        console.log('added entry');
-      }).
-      then(() => tDb?.getLibrary().loadLibraryTextNames()).
-      then((texts) => {
-        console.log('Got this:');
-        console.log(texts);
-        expect(texts).to.deep.equal(['ent1', 'ent2']);
+    await tDb.getLibrary().
+      then((lib) => {
+        lib.addUpdateEntry('ent1', 'This is the first text').
+          then((lib) => {
+            lib.addUpdateEntry('ent2', 'This is the second text').
+              then((lib) => lib.loadLibraryTextNames()).
+              then((texts) => {
+                console.log('Got this:');
+                console.log(texts);
+                expect(texts).to.deep.equal(['ent1', 'ent2']);
+              });
+          });
       });
   });
 
   it('it loads a library text in full', async () => {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.open().
-      then(() => {
-        const lib = tDb?.getLibrary();
-        lib?.addUpdateEntry('ent1', 'This is the first text');
-        console.log('added entry');
-      }).
-      then(() => tDb?.getLibrary().loadLibraryTextById('ent1')).
-      then((text) => {
-        expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text' });
+    await tDb.getLibrary().
+      then((lib) => {
+        lib?.addUpdateEntry('ent1', 'This is the first text').
+          then((lib) => lib.loadLibraryTextById('ent1')).
+          then((text) => {
+            expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text' });
+          });
       });
   });
 
   it('updates an existing entry', async () => {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.open().
-      then(() => {
-        const lib = tDb?.getLibrary();
-        lib?.addUpdateEntry('ent1', 'This is the first text');
-        console.log('added entry');
-      }).
-      then(() => {
-        const lib = tDb?.getLibrary();
-        lib?.addUpdateEntry('ent1', 'This is the first text rewritten');
-        console.log('added entry');
-      }).
-      then(() => tDb?.getLibrary().loadLibraryTextById('ent1')).
-      then((text) => {
-        expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text rewritten' });
+    await tDb.getLibrary().
+      then((lib) => {
+        lib?.addUpdateEntry('ent1', 'This is the first text').
+          then((lib) => {
+            lib.addUpdateEntry('ent1', 'This is the first text rewritten').
+              then((lib) => lib.loadLibraryTextById('ent1')).
+              then((text) => {
+                expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text rewritten' });
+              });
+          });
       });
   });
 
   it('deletes a library entry', () => {
   });
 });
+

@@ -12,7 +12,7 @@ export default class TypingDb {
     this.version = version;
   }
 
-  public open(): Promise<boolean> {
+  private open(): Promise<boolean> {
     return new Promise((resolve, reject) => {
       const openRequest = indexedDB.open(this.dbName, 1);
 
@@ -58,18 +58,31 @@ export default class TypingDb {
     });
   }
 
-  public close(): Promise<boolean> {
+  public close(): Promise<TypingDb> {
     return new Promise((resolve, reject) => {
       try {
-        this.db.close();
-        resolve();
+        if (this.db) {
+          this.db.close();
+        }
+        resolve(this);
       } catch (e) {
         reject(e);
       }
     });
   }
 
-  public getLibrary() {
-    return new Library(this.db);
+  public getLibrary(): Promise<Library> {
+    return new Promise<Library>((resolve, reject) => {
+      if (!this.db) {
+        this.open().
+          then(() => {
+            resolve(new Library(this.db));
+          },
+            () => {
+              reject('Could not open the library');
+            });
+      }
+      resolve(new Library(this.db));
+    });
   }
 }

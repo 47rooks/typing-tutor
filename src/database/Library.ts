@@ -32,15 +32,15 @@ export default class Library {
     });
   }
 
-  public addUpdateEntry(name: string, text: string): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
+  public addUpdateEntry(name: string, text: string): Promise<Library> {
+    return new Promise<Library>((resolve, reject) => {
       // Read the list of texts
       const txn = this.db.transaction('library', 'readwrite');
       const library = txn.objectStore('library');
       try {
         const getReq = library.put({ id: `${name}`, text: `${text}` });
         txn.oncomplete = () => {
-          resolve();
+          resolve(this);
         };
 
         txn.onerror = () => {
