@@ -73,16 +73,19 @@ export default class TypingDb {
 
   public getLibrary(): Promise<Library> {
     return new Promise<Library>((resolve, reject) => {
-      if (!this.db) {
+      if (this.db === undefined) {
         this.open().
           then(() => {
+            console.log(`open done returning db = ${this.db}`);
             resolve(new Library(this.db));
           },
             () => {
               reject('Could not open the library');
             });
+      } else {
+        console.log(`non-null returning db = ${this.db}`);
+        resolve(new Library(this.db));
       }
-      resolve(new Library(this.db));
     });
   }
 }

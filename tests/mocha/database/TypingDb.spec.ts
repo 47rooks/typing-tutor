@@ -4,7 +4,7 @@ import { Suite } from 'mocha';
 const expect = chai.expect;
 const TEST_DB1_NAME = 'testdb1';
 
-async function deleteDatabase(): Promise<any> {
+function deleteDatabase(): Promise<any> {
   return new Promise<any>((resolve, reject) => {
     const dReq = indexedDB.deleteDatabase(TEST_DB1_NAME);
     dReq.onerror = function (event) {
@@ -27,24 +27,47 @@ async function deleteDatabase(): Promise<any> {
 describe('database.TypingDb unit tests', function (this: Suite) {
   // FIXME Note that if beforeEach fails all subsequent tests in the suite will NOT be run.
   // This is bad and I don't know of any workaround.
-  beforeEach(async () => {
-    // console.log(`beforeEach: ${this.ctx.currentTest?.parent?.titlePath()}`);
-    console.log(`starting test: ${this.ctx.currentTest?.title}`);
+  beforeEach(() => {
+    const testName = this.ctx.currentTest?.title;
+    return new Promise((resolve, reject) => {
+      // console.log(`beforeEach: ${this.ctx.currentTest?.parent?.titlePath()}`);
+      console.log(`BEFOREEACH STARTING FOR TEST: ${testName}`);
 
-    await deleteDatabase();
-    console.log('DB deleted');
+      deleteDatabase().then(() => {
+        console.log('Promise resolved deleting the db');
+        console.log(`BEFOREEACH ENDING FOR TEST  : ${testName}`);
+        resolve();
+      }).catch(() => {
+        console.log('Promise rejected trying to delete the db');
+        console.log(`BEFOREEACH ENDING FOR TEST  : ${testName}`);
+        reject();
+      });
+    });
   });
 
   afterEach(() => {
-    console.log(`ending test: ${this.ctx.currentTest?.title}`);
+    return new Promise((resolve) => {
+      console.log(`AFTEREACH STARTING FOR TEST : ${this.ctx.currentTest?.title}`);
+      resolve();
+      console.log(`AFTEREACH ENDING FOR TEST   : ${this.ctx.currentTest?.title}`);
+    });
   });
 
-  after(async () => {
-    console.log('after(). Starting ...');
-    // Delete the test database after the last test so that the browser indexedDB storage is
-    // not polluted by the db once the tests finish.
-    await deleteDatabase();
-    console.log('after(). Ending');
+  after(() => {
+    return new Promise((resolve, reject) => {
+      console.log('AFTER STARTING ...');
+      // Delete the test database after the last test so that the browser indexedDB storage is
+      // not polluted by the db once the tests finish.
+      deleteDatabase().then(() => {
+        console.log('Promise resolved deleting the db');
+        resolve();
+      }).catch(() => {
+        console.log('Promise rejected trying to delete the db');
+        reject();
+      }).finally(() => {
+        console.log('AFTER ENDING ...');
+      });
+    });
   });
 
   it('creates a db object', () => {
@@ -75,67 +98,75 @@ describe('database.TypingDb unit tests', function (this: Suite) {
 
   });
 
-  it('closes the db', async () => {
+  it('closes the db', () => {
+    console.log('starting test proper');
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.close().then(() => {
+    return tDb.close().then(() => {
       expect(true).to.be.true;
+      console.log('Just to seee');
     });
   });
 
-  it('closes the db and then get Library', async () => {
+  it('closes the db and then get Library', () => {
     let tDb: TypingDb = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.close().then((db) => {
+    return tDb.close().then((db) => {
       db.getLibrary().
         then((lib) => {
-          expect(typeof lib).to.be('Library');
+          // Type erasure basically makes a proper comparison impossible
+          // so cannot check for Library class - object will have to do
+          expect(typeof lib).to.be.equal('object');
         })
     });
   });
 
-  it('gets the Library store', async () => {
+  it('gets the Library store', () => {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.getLibrary().
+    return tDb.getLibrary().
       then((lib) => {
         expect(tDb?.db).to.equal(lib?.db);
       });
   });
 
-  it('stores an entry in the library', async () => {
+  it('stores an entry in the library', () => {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.getLibrary().
+    return tDb.getLibrary().
       then((lib) => {
-        lib.addUpdateEntry('ent1', 'This is the first text').
-          then((lib) => lib.loadLibraryTextNames()).
-          then((texts) => {
-            console.log('Got this:');
-            console.log(texts);
-            expect(texts).to.deep.equal(['ent1']);
-          });
-      });
-  });
-
-  it('stores two entries in the library', async () => {
-    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.getLibrary().
-      then((lib) => {
-        lib.addUpdateEntry('ent1', 'This is the first text').
+        return lib.addUpdateEntry('ent1', 'This is the first text').
           then((lib) => {
-            lib.addUpdateEntry('ent2', 'This is the second text').
-              then((lib) => lib.loadLibraryTextNames()).
+            return lib.loadLibraryTextNames().
               then((texts) => {
                 console.log('Got this:');
                 console.log(texts);
-                expect(texts).to.deep.equal(['ent1', 'ent2']);
+                expect(texts).to.deep.equal(['ent1']);
               });
           });
       });
   });
 
-  it('it loads a library text in full', async () => {
+  it('stores two entries in the library', () => {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.getLibrary().
+    return tDb.getLibrary().
       then((lib) => {
-        lib?.addUpdateEntry('ent1', 'This is the first text').
+        return lib.addUpdateEntry('ent1', 'This is the first text').
+          then((lib) => {
+            return lib.addUpdateEntry('ent2', 'This is the second text').
+              then((lib) => {
+                return lib.loadLibraryTextNames().
+                  then((texts) => {
+                    console.log('Got this:');
+                    console.log(texts);
+                    expect(texts).to.deep.equal(['ent1', 'ent2']);
+                  })
+              });
+          });
+      });
+  });
+
+  it('it loads a library text in full', () => {
+    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+    return tDb.getLibrary().
+      then((lib) => {
+        return lib?.addUpdateEntry('ent1', 'This is the first text').
           then((lib) => lib.loadLibraryTextById('ent1')).
           then((text) => {
             expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text' });
@@ -143,16 +174,19 @@ describe('database.TypingDb unit tests', function (this: Suite) {
       });
   });
 
-  it('updates an existing entry', async () => {
+  it('updates an existing entry', () => {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    await tDb.getLibrary().
+    return tDb.getLibrary().
       then((lib) => {
-        lib?.addUpdateEntry('ent1', 'This is the first text').
+        return lib?.addUpdateEntry('ent1', 'This is the first text').
           then((lib) => {
-            lib.addUpdateEntry('ent1', 'This is the first text rewritten').
-              then((lib) => lib.loadLibraryTextById('ent1')).
-              then((text) => {
-                expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text rewritten' });
+            return lib.addUpdateEntry('ent1', 'This is the first text rewritten').
+              then((lib) => {
+                return lib.loadLibraryTextById('ent1').
+                  then((text) => {
+                    console.log(`${text.id} = ${text.text}`);
+                    expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text rewritten' });
+                  });
               });
           });
       });
