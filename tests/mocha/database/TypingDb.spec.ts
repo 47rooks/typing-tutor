@@ -27,8 +27,8 @@ function deleteDatabase(): Promise<any> {
 describe('database.TypingDb unit tests', function (this: Suite) {
   // FIXME Note that if beforeEach fails all subsequent tests in the suite will NOT be run.
   // This is bad and I don't know of any workaround.
-  beforeEach(() => {
-    const testName = this.ctx.currentTest?.title;
+  beforeEach(function (this: Mocha.Context) {
+    const testName = this.currentTest?.title;
     return new Promise((resolve, reject) => {
       // console.log(`beforeEach: ${this.ctx.currentTest?.parent?.titlePath()}`);
       console.log(`BEFOREEACH STARTING FOR TEST: ${testName}`);
@@ -45,15 +45,15 @@ describe('database.TypingDb unit tests', function (this: Suite) {
     });
   });
 
-  afterEach(() => {
+  afterEach(function (this: Mocha.Context) {
     return new Promise((resolve) => {
-      console.log(`AFTEREACH STARTING FOR TEST : ${this.ctx.currentTest?.title}`);
+      console.log(`AFTEREACH STARTING FOR TEST : ${this.currentTest?.title}`);
       resolve();
-      console.log(`AFTEREACH ENDING FOR TEST   : ${this.ctx.currentTest?.title}`);
+      console.log(`AFTEREACH ENDING FOR TEST   : ${this.currentTest?.title}`);
     });
   });
 
-  after(() => {
+  after(function () {
     return new Promise((resolve, reject) => {
       console.log('AFTER STARTING ...');
       // Delete the test database after the last test so that the browser indexedDB storage is
@@ -70,7 +70,7 @@ describe('database.TypingDb unit tests', function (this: Suite) {
     });
   });
 
-  it('creates a db object', () => {
+  it('creates a db object', function () {
     let db: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
     expect(db.dbName).to.equal(TEST_DB1_NAME);
     expect(db.version).to.equal(1);
@@ -98,7 +98,7 @@ describe('database.TypingDb unit tests', function (this: Suite) {
 
   });
 
-  it('closes the db', () => {
+  it('closes the db', function () {
     console.log('starting test proper');
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
     return tDb.close().then(() => {
@@ -107,7 +107,7 @@ describe('database.TypingDb unit tests', function (this: Suite) {
     });
   });
 
-  it('closes the db and then get Library', () => {
+  it('closes the db and then get Library', function () {
     let tDb: TypingDb = new TypingDb(TEST_DB1_NAME, 1);
     return tDb.close().then((db) => {
       db.getLibrary().
@@ -119,7 +119,7 @@ describe('database.TypingDb unit tests', function (this: Suite) {
     });
   });
 
-  it('gets the Library store', () => {
+  it('gets the Library store', function () {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
     return tDb.getLibrary().
       then((lib) => {
@@ -127,7 +127,7 @@ describe('database.TypingDb unit tests', function (this: Suite) {
       });
   });
 
-  it('stores an entry in the library', () => {
+  it('stores an entry in the library', function () {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
     return tDb.getLibrary().
       then((lib) => {
@@ -143,7 +143,7 @@ describe('database.TypingDb unit tests', function (this: Suite) {
       });
   });
 
-  it('stores two entries in the library', () => {
+  it('stores two entries in the library', function () {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
     return tDb.getLibrary().
       then((lib) => {
@@ -162,7 +162,7 @@ describe('database.TypingDb unit tests', function (this: Suite) {
       });
   });
 
-  it('it loads a library text in full', () => {
+  it('it loads a library text in full', function () {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
     return tDb.getLibrary().
       then((lib) => {
@@ -174,7 +174,7 @@ describe('database.TypingDb unit tests', function (this: Suite) {
       });
   });
 
-  it('updates an existing entry', () => {
+  it('updates an existing entry', function () {
     let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
     return tDb.getLibrary().
       then((lib) => {
@@ -192,7 +192,7 @@ describe('database.TypingDb unit tests', function (this: Suite) {
       });
   });
 
-  it('deletes a library entry', () => {
+  it('deletes a library entry', function () {
   });
 });
 
