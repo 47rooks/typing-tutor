@@ -67,4 +67,18 @@ export default class Library {
       };
     });
   }
+
+  public deleteEntry(id: string): Promise<undefined> {
+    return new Promise<undefined>((resolve, reject) => {
+      const txn = this.db.transaction('library', 'readwrite');
+      const library = txn.objectStore('library');
+      const delReq = library.delete(id);
+      delReq.onsuccess = () => {
+        resolve();
+      };
+      delReq.onerror = () => {
+        reject(`Delete of '${id}' failed. Error = ${delReq.error}`);
+      };
+    });
+  }
 }

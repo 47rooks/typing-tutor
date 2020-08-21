@@ -193,6 +193,31 @@ describe('database.TypingDb unit tests', function (this: Suite) {
   });
 
   it('deletes a library entry', function () {
+    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+    return tDb.getLibrary().
+      then((lib) => {
+        return lib?.addUpdateEntry('ent1', 'This is the first text').
+          then((lib) => {
+            return lib.deleteEntry('ent1').
+              then(() => {
+                return lib.loadLibraryTextById('ent1').
+                  then((text) => {
+                    expect(text).to.be.undefined;
+                  });
+              });
+          });
+      });
+  });
+
+  it('deletes a non-existent library entry', function () {
+    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+    return tDb.getLibrary().
+      then((lib) => {
+        return lib.deleteEntry('non-existent').
+          then((u) => {
+            expect(u).to.be.undefined;
+          });
+      });
   });
 });
 
