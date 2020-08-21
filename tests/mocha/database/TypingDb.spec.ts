@@ -70,154 +70,188 @@ describe('database.TypingDb unit tests', function (this: Suite) {
     });
   });
 
-  it('creates a db object', function () {
-    let db: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    expect(db.dbName).to.equal(TEST_DB1_NAME);
-    expect(db.version).to.equal(1);
-  });
+  describe('TypingDb class tests', function () {
+    it('creates a db object', function () {
+      let db: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      expect(db.dbName).to.equal(TEST_DB1_NAME);
+      expect(db.version).to.equal(1);
+    });
 
-  // FIXME This may have to go. Is there an idea of the stores on the TypingDb object ?
-  // It's not the same as the objectStores in the IndexedDB.
-  // And if there is what use is it to the callers.
-  // it('tests open - verifies the db creation', async () => {
-  //   let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-  //   console.log('in the test open test');
-  //   await tDb.open().then(() => {
-  //     console.log(`Got database with this ${tDb?.db.name}`);
-  //     let storeNames: string[] = [];
-  //     if (tDb?.db?.objectStoreNames) {
-  //       storeNames = Array.from(tDb.db.objectStoreNames);
-  //     }
-  //     console.log(`Contains these stores: ${storeNames}`);
-  //     expect(storeNames.length).to.equal(1);
-  //     expect(storeNames).to.include.all.members(['library']);
-  //   });
-  // });
+    it('verifies open() fail exception', () => {
 
-  it('verifies open() fail exception', () => {
+    });
 
-  });
+    it('cannot get library from destroyed db', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.close().
+        then((db) => {
+          return db.getLibrary().
+            then(() => {
+              return db.destroy().
+                then(() => {
+                  return db.getLibrary().
+                    catch((reason) => {
+                      expect(reason).to.equal('Cannot use a destroyed db');
+                    });
+                });
+            });
+        });
+    });
 
-  it('closes the db', function () {
-    console.log('starting test proper');
-    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    return tDb.close().then(() => {
-      expect(true).to.be.true;
-      console.log('Just to seee');
+    it('cannot close destroyed db', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.close().
+        then((db) => {
+          return db.getLibrary().
+            then(() => {
+              return db.destroy().
+                then(() => {
+                  return db.close().catch((reason) => {
+                    expect(reason).to.equal('Cannot use a destroyed db');
+                  });
+                });
+            });
+        });
+    });
+
+    it('cannot destroy destroyed db', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.close().
+        then((db) => {
+          return db.getLibrary().
+            then(() => {
+              return db.destroy().
+                then(() => {
+                  return db.destroy().catch((reason) => {
+                    expect(reason).to.equal('Cannot use a destroyed db');
+                  });
+                });
+            });
+        });
+    });
+
+    it('closes the db', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.close().then(() => {
+        expect(true).to.be.true;
+        console.log('Just to seee');
+      });
+    });
+
+    it('closes the db and then get Library', function () {
+      let tDb: TypingDb = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.close().then((db) => {
+        db.getLibrary().
+          then((lib) => {
+            // Type erasure basically makes a proper comparison impossible
+            // so cannot check for Library class - object will have to do
+            expect(typeof lib).to.be.equal('object');
+          })
+      });
     });
   });
 
-  it('closes the db and then get Library', function () {
-    let tDb: TypingDb = new TypingDb(TEST_DB1_NAME, 1);
-    return tDb.close().then((db) => {
-      db.getLibrary().
+  describe('Library class tests', function () {
+    it('gets the Library store', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.getLibrary().
         then((lib) => {
-          // Type erasure basically makes a proper comparison impossible
-          // so cannot check for Library class - object will have to do
-          expect(typeof lib).to.be.equal('object');
-        })
+          expect(tDb?.db).to.equal(lib?.db);
+        });
     });
-  });
 
-  it('gets the Library store', function () {
-    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    return tDb.getLibrary().
-      then((lib) => {
-        expect(tDb?.db).to.equal(lib?.db);
-      });
-  });
+    it('stores an entry in the library', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.getLibrary().
+        then((lib) => {
+          return lib.addUpdateEntry('ent1', 'This is the first text').
+            then((lib) => {
+              return lib.loadLibraryTextNames().
+                then((texts) => {
+                  console.log('Got this:');
+                  console.log(texts);
+                  expect(texts).to.deep.equal(['ent1']);
+                });
+            });
+        });
+    });
 
-  it('stores an entry in the library', function () {
-    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    return tDb.getLibrary().
-      then((lib) => {
-        return lib.addUpdateEntry('ent1', 'This is the first text').
-          then((lib) => {
-            return lib.loadLibraryTextNames().
-              then((texts) => {
-                console.log('Got this:');
-                console.log(texts);
-                expect(texts).to.deep.equal(['ent1']);
-              });
-          });
-      });
-  });
+    it('stores two entries in the library', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.getLibrary().
+        then((lib) => {
+          return lib.addUpdateEntry('ent1', 'This is the first text').
+            then((lib) => {
+              return lib.addUpdateEntry('ent2', 'This is the second text').
+                then((lib) => {
+                  return lib.loadLibraryTextNames().
+                    then((texts) => {
+                      console.log('Got this:');
+                      console.log(texts);
+                      expect(texts).to.deep.equal(['ent1', 'ent2']);
+                    })
+                });
+            });
+        });
+    });
 
-  it('stores two entries in the library', function () {
-    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    return tDb.getLibrary().
-      then((lib) => {
-        return lib.addUpdateEntry('ent1', 'This is the first text').
-          then((lib) => {
-            return lib.addUpdateEntry('ent2', 'This is the second text').
-              then((lib) => {
-                return lib.loadLibraryTextNames().
-                  then((texts) => {
-                    console.log('Got this:');
-                    console.log(texts);
-                    expect(texts).to.deep.equal(['ent1', 'ent2']);
-                  })
-              });
-          });
-      });
-  });
+    it('it loads a library text in full', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.getLibrary().
+        then((lib) => {
+          return lib?.addUpdateEntry('ent1', 'This is the first text').
+            then((lib) => lib.loadLibraryTextById('ent1')).
+            then((text) => {
+              expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text' });
+            });
+        });
+    });
 
-  it('it loads a library text in full', function () {
-    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    return tDb.getLibrary().
-      then((lib) => {
-        return lib?.addUpdateEntry('ent1', 'This is the first text').
-          then((lib) => lib.loadLibraryTextById('ent1')).
-          then((text) => {
-            expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text' });
-          });
-      });
-  });
+    it('updates an existing entry', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.getLibrary().
+        then((lib) => {
+          return lib?.addUpdateEntry('ent1', 'This is the first text').
+            then((lib) => {
+              return lib.addUpdateEntry('ent1', 'This is the first text rewritten').
+                then((lib) => {
+                  return lib.loadLibraryTextById('ent1').
+                    then((text) => {
+                      console.log(`${text.id} = ${text.text}`);
+                      expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text rewritten' });
+                    });
+                });
+            });
+        });
+    });
 
-  it('updates an existing entry', function () {
-    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    return tDb.getLibrary().
-      then((lib) => {
-        return lib?.addUpdateEntry('ent1', 'This is the first text').
-          then((lib) => {
-            return lib.addUpdateEntry('ent1', 'This is the first text rewritten').
-              then((lib) => {
-                return lib.loadLibraryTextById('ent1').
-                  then((text) => {
-                    console.log(`${text.id} = ${text.text}`);
-                    expect(text).to.deep.equal({ id: 'ent1', text: 'This is the first text rewritten' });
-                  });
-              });
-          });
-      });
-  });
+    it('deletes a library entry', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.getLibrary().
+        then((lib) => {
+          return lib?.addUpdateEntry('ent1', 'This is the first text').
+            then((lib) => {
+              return lib.deleteEntry('ent1').
+                then(() => {
+                  return lib.loadLibraryTextById('ent1').
+                    then((text) => {
+                      expect(text).to.be.undefined;
+                    });
+                });
+            });
+        });
+    });
 
-  it('deletes a library entry', function () {
-    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    return tDb.getLibrary().
-      then((lib) => {
-        return lib?.addUpdateEntry('ent1', 'This is the first text').
-          then((lib) => {
-            return lib.deleteEntry('ent1').
-              then(() => {
-                return lib.loadLibraryTextById('ent1').
-                  then((text) => {
-                    expect(text).to.be.undefined;
-                  });
-              });
-          });
-      });
-  });
-
-  it('deletes a non-existent library entry', function () {
-    let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
-    return tDb.getLibrary().
-      then((lib) => {
-        return lib.deleteEntry('non-existent').
-          then((u) => {
-            expect(u).to.be.undefined;
-          });
-      });
+    it('deletes a non-existent library entry', function () {
+      let tDb: TypingDb | undefined = new TypingDb(TEST_DB1_NAME, 1);
+      return tDb.getLibrary().
+        then((lib) => {
+          return lib.deleteEntry('non-existent').
+            then((u) => {
+              expect(u).to.be.undefined;
+            });
+        });
+    });
   });
 });
 

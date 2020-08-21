@@ -7,13 +7,20 @@ export default class TypingDb {
 
   db!: IDBDatabase;
 
+  destroyed: boolean;
+
   constructor(dbName: string, version: number) {
     this.dbName = dbName;
     this.version = version;
+    this.destroyed = false;
   }
 
   private open(): Promise<boolean> {
     return new Promise((resolve, reject) => {
+      if (this.destroyed) {
+        reject('Cannot use a destroyed db');
+        return;
+      }
       const openRequest = indexedDB.open(this.dbName, 1);
 
       openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
@@ -60,6 +67,11 @@ export default class TypingDb {
 
   public close(): Promise<TypingDb> {
     return new Promise((resolve, reject) => {
+      if (this.destroyed) {
+        reject('Cannot use a destroyed db');
+        return;
+      }
+
       try {
         if (this.db) {
           this.db.close();
@@ -71,8 +83,44 @@ export default class TypingDb {
     });
   }
 
+  public destroy(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.destroyed) {
+        reject('Cannot use a destroyed db');
+        return;
+      }
+
+      if (this.dbName) {
+        const dReq = indexedDB.deleteDatabase(this.dbName);
+        const me = this;
+        dReq.onerror = function (event) {
+          console.log("Error deleting database.");
+        };
+
+        dReq.onsuccess = function (event) {
+          console.log("destroy() Database deleted successfully");
+          me.destroyed = true;
+          resolve();
+        };
+
+        dReq.onblocked = function (event: Event) {
+          console.log("Database delete blocked");
+          console.log(event.returnValue); // should be undefined
+          reject(event.returnValue);
+        };
+      } else {
+        resolve();
+      }
+    });
+  }
+
   public getLibrary(): Promise<Library> {
     return new Promise<Library>((resolve, reject) => {
+      if (this.destroyed) {
+        reject('Cannot use a destroyed db');
+        return;
+      }
+
       if (this.db === undefined) {
         this.open().
           then(() => {
