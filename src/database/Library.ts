@@ -27,7 +27,8 @@ export default class Library {
       };
 
       getReq.onerror = () => {
-        reject(`Failed to read texts from library. Will continue without it. Error = ${getReq.error}`);
+        reject(new Error('Failed to read texts from library.'
+          + ` Will continue without it. Error = ${getReq.error}`));
       };
     });
   }
@@ -44,11 +45,12 @@ export default class Library {
         };
 
         txn.onerror = () => {
-          reject(`Failed to save text to library. Will continue without it. Error = ${getReq.error}`);
+          reject(new Error('Failed to save text to library.'
+            + ` Will continue without it.Error = ${getReq.error} `));
         };
       } catch (e) {
-        reject(`Library operation failed: ${e}`);
-      };
+        reject(new Error(`Library operation failed: ${e} `));
+      }
     });
   }
 
@@ -63,7 +65,7 @@ export default class Library {
       };
 
       getReq.onerror = () => {
-        reject(`Failed to read text ${id} from library. Error = ${getReq.error}`);
+        reject(new Error(`Failed to read text ${id} from library.Error = ${getReq.error} `));
       };
     });
   }
@@ -77,7 +79,7 @@ export default class Library {
         resolve();
       };
       delReq.onerror = () => {
-        reject(`Delete of '${id}' failed. Error = ${delReq.error}`);
+        reject(new Error(`Delete of '${id}' failed.Error = ${delReq.error} `));
       };
     });
   }

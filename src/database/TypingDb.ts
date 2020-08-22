@@ -18,7 +18,7 @@ export default class TypingDb {
   private open(): Promise<boolean> {
     return new Promise((resolve, reject) => {
       if (this.destroyed) {
-        reject('Cannot use a destroyed db');
+        reject(new Error('Cannot use a destroyed db'));
         return;
       }
       const openRequest = indexedDB.open(this.dbName, 1);
@@ -68,7 +68,7 @@ export default class TypingDb {
   public close(): Promise<TypingDb> {
     return new Promise((resolve, reject) => {
       if (this.destroyed) {
-        reject('Cannot use a destroyed db');
+        reject(new Error('Cannot use a destroyed db'));
         return;
       }
 
@@ -86,27 +86,28 @@ export default class TypingDb {
   public destroy(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.destroyed) {
-        reject('Cannot use a destroyed db');
+        reject(new Error('Cannot use a destroyed db'));
         return;
       }
 
       if (this.dbName) {
         const dReq = indexedDB.deleteDatabase(this.dbName);
+        /* eslint-disable-next-line @typescript-eslint/no-this-alias */
         const me = this;
-        dReq.onerror = function (event) {
-          console.log("Error deleting database.");
+        dReq.onerror = function errorHndlr(event) {
+          console.log(`Error deleting database. ${event}`);
         };
 
-        dReq.onsuccess = function (event) {
-          console.log("destroy() Database deleted successfully");
+        dReq.onsuccess = function successHndlr(event) {
+          console.log(`destroy() Database deleted successfully. ${event}`);
           me.destroyed = true;
           resolve();
         };
 
-        dReq.onblocked = function (event: Event) {
-          console.log("Database delete blocked");
+        dReq.onblocked = function blockHndlr(event: Event) {
+          console.log('Database delete blocked');
           console.log(event.returnValue); // should be undefined
-          reject(event.returnValue);
+          reject(new Error(`db deletion blocked. Error=${event.returnValue}`));
         };
       } else {
         resolve();
@@ -117,19 +118,19 @@ export default class TypingDb {
   public getLibrary(): Promise<Library> {
     return new Promise<Library>((resolve, reject) => {
       if (this.destroyed) {
-        reject('Cannot use a destroyed db');
+        reject(new Error('Cannot use a destroyed db'));
         return;
       }
 
       if (this.db === undefined) {
-        this.open().
-          then(() => {
+        this.open()
+          .then(() => {
             console.log(`open done returning db = ${this.db}`);
             resolve(new Library(this.db));
-          },
-            () => {
-              reject('Could not open the library');
-            });
+          })
+          .catch(() => {
+            reject(new Error('Could not open the library'));
+          });
       } else {
         console.log(`non-null returning db = ${this.db}`);
         resolve(new Library(this.db));

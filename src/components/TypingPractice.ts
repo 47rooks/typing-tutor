@@ -2,6 +2,8 @@ import { Component, Vue } from 'vue-property-decorator';
 import GraphemeSplitter from 'grapheme-splitter';
 import FontPicker from './FontPicker.vue';
 import InputPopup from './InputPopup.vue';
+import Library from '../database/Library';
+import TypingDb from '../database/TypingDb';
 
 const COLOR_ADDED = 'color:orange';
 const COLOR_OMITTED = 'color:blue';
@@ -103,8 +105,13 @@ export default class TypingPractice extends Vue {
 
   notStarted = true;
 
+  // Database for persisting application state
+  database: TypingDb;
+
   // Library support
-  libraryTexts: string[];
+  libraryDb: Library | undefined;
+
+  libraryTexts: string[] | undefined;
 
   selectedText = 'none';
 
@@ -138,12 +145,22 @@ export default class TypingPractice extends Vue {
   // The selected font in which to render all text
   private chosenFont = this.PREFERRED_FONT;
 
+  // Database name
+  DATABASE_NAME = 'typingdb';
+
+  // Database version
+  DATABASE_VERSION = 1;
+
   constructor() {
     super();
     console.log('Constructor called');
-    this.libraryTexts = [];
+    this.database = new TypingDb(this.DATABASE_NAME, this.DATABASE_VERSION);
     // Launch the library text load
-    this.loadLibraryTexts();
+    this.database.getLibrary()
+      .then((lib) => {
+        this.libraryDb = lib;
+        this.loadLibraryTexts();
+      });
   }
 
   /**
@@ -408,7 +425,7 @@ export default class TypingPractice extends Vue {
    * Disabled when there is no library, or once a text is in use
    */
   get librarySelectListDisabled(): boolean {
-    return this.libraryTexts.length === 0;
+    return this.libraryTexts?.length === 0;
   }
 
   /*
@@ -460,30 +477,48 @@ export default class TypingPractice extends Vue {
   /**
    * Get the list of saved library texts
    */
-  private loadLibraryTexts(): void {
-    this.libraryOperation((db: IDBDatabase) => {
-      // Read the list of texts
-      const txn = db.transaction('library');
-      const library = txn.objectStore('library');
-      const getReq = library.getAll();
-      getReq.onsuccess = () => {
-        this.libraryTexts = [];
-        getReq.result.forEach((t) => {
-          this.libraryTexts.push(t.id);
-        });
-        db.close();
-        console.log(`Current texts=${this.libraryTexts}`);
-      };
+  // private loadLibraryTexts(): void {
+  //   this.libraryOperation((db: IDBDatabase) => {
+  //     // Read the list of texts
+  //     const txn = db.transaction('library');
+  //     const library = txn.objectStore('library');
+  //     const getReq = library.getAll();
+  //     getReq.onsuccess = () => {
+  //       this.libraryTexts = [];
+  //       getReq.result.forEach((t) => {
+  //         this.libraryTexts.push(t.id);
+  //       });
+  //       db.close();
+  //       console.log(`Current texts=${this.libraryTexts}`);
+  //     };
 
-      getReq.onerror = () => {
-        alert(`Failed to read texts from library. Will continue without it. Error = ${getReq.error}`);
-        db.close();
-      };
-    });
+  //     getReq.onerror = () => {
+  //       alert(`Failed to read texts from library.
+  // Will continue without it. Error = ${getReq.error}`);
+  //       db.close();
+  //     };
+  //   });
+  // }
+  private loadLibraryTexts(): void {
+    if (this.libraryDb) {
+      this.libraryDb.loadLibraryTextNames()
+        .then((texts) => {
+          this.libraryTexts = texts;
+        })
+        .catch((reason: Error) => {
+          console.log(`Could not load texts. Reason=${reason.message}`);
+          this.libraryTexts = [];
+        });
+    } else {
+      this.libraryTexts = [];
+    }
   }
 
   get libraryTextsList(): string[] {
-    return this.libraryTexts;
+    if (this.libraryTexts) {
+      return this.libraryTexts;
+    }
+    return [];
   }
 
   /**
